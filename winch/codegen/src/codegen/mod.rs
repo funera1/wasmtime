@@ -510,6 +510,12 @@ where
         Ok(())
     }
 
+    ///  emit trap instruction for hook nop
+    pub fn emit_unreachable(&mut self) -> Result<()> {
+        self.masm.unreachable()?;
+        Ok(())
+    }
+
     /// Pops the value at the stack top and assigns it to the local at
     /// the given index, returning the typed register holding the
     /// source value.
