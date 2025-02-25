@@ -1207,6 +1207,11 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
+    fn hlt(&mut self) -> Result<()> {
+        self.asm.hlt();
+        Ok(())
+    }
+
     fn trapif(&mut self, cc: IntCmpKind, code: TrapCode) -> Result<()> {
         self.asm.trapif(cc, code);
         Ok(())

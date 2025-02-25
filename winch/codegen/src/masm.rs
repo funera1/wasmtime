@@ -1639,6 +1639,9 @@ pub(crate) trait MacroAssembler {
     /// Emit an unconditional trap.
     fn trap(&mut self, code: TrapCode) -> Result<()>;
 
+    /// Emit an int3.
+    fn hlt(&mut self) -> Result<()>;
+
     /// Traps if the condition code is met.
     fn trapif(&mut self, cc: IntCmpKind, code: TrapCode) -> Result<()>;
 

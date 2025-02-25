@@ -1685,6 +1685,10 @@ impl Assembler {
         self.emit(Inst::Ud2 { trap_code: code })
     }
 
+    pub fn hlt(&mut self) {
+        self.emit(Inst::Hlt)
+    }
+
     /// Conditional trap.
     pub fn trapif(&mut self, cc: impl Into<CC>, trap_code: TrapCode) {
         self.emit(Inst::TrapIf {

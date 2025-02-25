@@ -1882,9 +1882,9 @@ where
 
     fn visit_nop(&mut self) -> Self::Output {
         // emit trap
-        self.emit_unreachable()
+        self.emit_int3();
 
-        // Ok(())
+        Ok(())
     }
 
     fn visit_if(&mut self, blockty: BlockType) -> Self::Output {

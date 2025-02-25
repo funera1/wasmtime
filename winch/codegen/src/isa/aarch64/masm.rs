@@ -888,6 +888,10 @@ impl Masm for MacroAssembler {
         })
     }
 
+    fn hlt(&mut self) -> Result<()> {
+        unimplemented!()
+    }
+
     fn trapz(&mut self, src: Reg, code: TrapCode) -> Result<()> {
         self.with_aligned_sp(|masm| {
             masm.asm.trapz(src, code, OperandSize::S64);

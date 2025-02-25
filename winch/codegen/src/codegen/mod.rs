@@ -511,8 +511,9 @@ where
     }
 
     ///  emit trap instruction for hook nop
-    pub fn emit_unreachable(&mut self) -> Result<()> {
-        self.masm.unreachable()?;
+    pub fn emit_int3(&mut self) -> Result<()> {
+        self.masm.hlt()?;
+
         Ok(())
     }
 
