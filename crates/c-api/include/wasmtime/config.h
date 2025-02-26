@@ -34,6 +34,10 @@ enum wasmtime_strategy_enum { // Strategy
   /// Indicates that Wasmtime will unconditionally use Cranelift to compile
   /// WebAssembly code.
   WASMTIME_STRATEGY_CRANELIFT,
+
+  /// A baseline compiler for WebAssembly, currently under active development and not ready for
+  /// production applications.
+  WASMTIME_STRATEGY_WINCH,
 };
 
 /**
