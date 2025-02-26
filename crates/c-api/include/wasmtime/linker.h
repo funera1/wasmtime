@@ -67,6 +67,15 @@ WASM_API_EXTERN void wasmtime_linker_allow_shadowing(wasmtime_linker_t *linker,
                                                      bool allow_shadowing);
 
 /**
+ * \brief Configures whether this linker allows later definitions to shadow
+ * previous definitions.
+ *
+ * By default this setting is `false`.
+ */
+WASM_API_EXTERN void wasmtime_linker_allow_unknown_exports(wasmtime_linker_t *linker,
+                                                     bool allow_unknown_exports);
+
+/**
  * \brief Defines a new item in this linker.
  *
  * \param linker the linker the name is being defined in.
