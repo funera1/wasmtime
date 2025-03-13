@@ -1882,7 +1882,7 @@ where
 
     fn visit_nop(&mut self) -> Self::Output {
         // emit trap
-        self.emit_int3();
+        let _ = self.emit_int3();
 
         Ok(())
     }
