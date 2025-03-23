@@ -357,7 +357,8 @@ impl<'a> CodeGenContext<'a, Emission> {
         let dst = self.pop_to_reg(masm, None)?;
         let dst = emit(masm, dst.reg, src.reg.into(), size)?;
         self.free_reg(src);
-        self.stack.push(dst.into());
+        // self.stack.push(dst.into());
+        self.stack.push_with_metadata(dst.into(), dst.reg.hw_enc() as u32);
 
         Ok(())
     }
@@ -797,10 +798,12 @@ impl<'a> CodeGenContext<'a, Emission> {
         frame: &Frame<Emission>,
         masm: &mut M,
     ) -> Result<()> {
+        let mut freeable_index = Vec::new();
         for v in stack.inner_mut() {
             match v {
                 Val::Reg(r) => {
                     let slot = masm.push(r.reg, r.ty.try_into()?)?;
+                    freeable_index.push(r.reg.hw_enc());
                     regalloc.free(r.reg);
                     *v = Val::mem(r.ty, slot);
                 }
@@ -814,6 +817,11 @@ impl<'a> CodeGenContext<'a, Emission> {
                 }
                 _ => {}
             }
+        }
+
+        // free stack reconstruction metadata
+        for i in freeable_index {
+            stack.free_metadata(i as u32);
         }
 
         Ok(())

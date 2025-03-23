@@ -3,6 +3,7 @@ use anyhow::{anyhow, Result};
 use smallvec::SmallVec;
 use wasmparser::{Ieee32, Ieee64};
 use wasmtime_environ::WasmValType;
+use std::collections::HashMap;
 
 /// A typed register value used to track register values in the value
 /// stack.
@@ -318,6 +319,7 @@ impl Val {
 pub(crate) struct Stack {
     // NB: The 64 is chosen arbitrarily. We can adjust as we see fit.
     inner: SmallVec<[Val; 64]>,
+    metadata: HashMap<u32, u32>,
 }
 
 impl Stack {
@@ -325,6 +327,7 @@ impl Stack {
     pub fn new() -> Self {
         Self {
             inner: Default::default(),
+            metadata: HashMap::new(),
         }
     }
 
@@ -379,6 +382,15 @@ impl Stack {
     /// Push a value to the stack.
     pub fn push(&mut self, val: Val) {
         self.inner.push(val);
+    }
+
+    pub fn push_with_metadata(&mut self, val: Val, addr: u32) {
+        self.inner.push(val);
+        self.metadata.insert(addr, self.len() as u32);
+    }
+
+    pub fn free_metadata(&mut self, addr: u32) {
+        self.metadata.remove(&addr);
     }
 
     /// Peek into the top in the stack.
