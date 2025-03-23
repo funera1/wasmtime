@@ -358,7 +358,7 @@ impl<'a> CodeGenContext<'a, Emission> {
         let dst = emit(masm, dst.reg, src.reg.into(), size)?;
         self.free_reg(src);
         // self.stack.push(dst.into());
-        self.stack.push_with_metadata(dst.into(), dst.reg.hw_enc() as u32);
+        let _ = self.stack.push_with_metadata(masm, dst.into(), dst.reg.hw_enc() as u32);
 
         Ok(())
     }

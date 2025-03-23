@@ -153,6 +153,16 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
+    // val_addrはReg.hw_enc()もしくはmem.offsetを表している。metadataはスタック位置を表している
+    fn store_metadata(&mut self, val_addr: u32, metadata: i32) -> Result<()> {
+        // NOTE: offsのベースアドレスが小さいと通常スタックと衝突して壊れる可能性あり
+        let sp_offset = SPOffset::from_u32(200 + val_addr);
+        self.asm
+            .mov_im(metadata, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+
+        Ok(())
+    }
+
     fn push(&mut self, reg: Reg, size: OperandSize) -> Result<StackSlot> {
         let bytes = match (reg.class(), size) {
             (RegClass::Int, OperandSize::S64) => {

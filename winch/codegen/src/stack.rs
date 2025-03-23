@@ -1,4 +1,10 @@
-use crate::{codegen::CodeGenError, isa::reg::Reg, masm::StackSlot};
+use crate::{
+    codegen::CodeGenError, isa::reg::Reg,
+    masm::{
+        MacroAssembler, OperandSize, RegImm, SPOffset,
+        StackSlot, Imm,
+    },
+};
 use anyhow::{anyhow, Result};
 use smallvec::SmallVec;
 use wasmparser::{Ieee32, Ieee64};
@@ -384,9 +390,13 @@ impl Stack {
         self.inner.push(val);
     }
 
-    pub fn push_with_metadata(&mut self, val: Val, addr: u32) {
+    pub fn push_with_metadata<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
+    where
+        M: MacroAssembler,
+    {
         self.inner.push(val);
-        self.metadata.insert(addr, self.len() as u32);
+        masm.store_metadata(addr, self.len() as i32);
+        Ok(())
     }
 
     pub fn free_metadata(&mut self, addr: u32) {
