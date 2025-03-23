@@ -798,12 +798,14 @@ impl<'a> CodeGenContext<'a, Emission> {
         frame: &Frame<Emission>,
         masm: &mut M,
     ) -> Result<()> {
-        let mut freeable_index = Vec::new();
+        let mut addrs = Vec::new();
         for v in stack.inner_mut() {
             match v {
                 Val::Reg(r) => {
                     let slot = masm.push(r.reg, r.ty.try_into()?)?;
-                    freeable_index.push(r.reg.hw_enc());
+                    // metadataの変更をするために、addrを集める。　
+                    // TODO: 16を定数にする
+                    addrs.push((r.reg.hw_enc() as u32, 16 + slot.offset.as_u32()));
                     regalloc.free(r.reg);
                     *v = Val::mem(r.ty, slot);
                 }
@@ -818,10 +820,15 @@ impl<'a> CodeGenContext<'a, Emission> {
                 _ => {}
             }
         }
+        for (old_addr, new_addr) in addrs {
+            // 実行時メタデータの更新
+            // 新しいデータの更新
+            let _ = masm.store_metadata(new_addr, stack.get_metadata(old_addr) as i32);
+            // 古いデータの削除
+            let _ = masm.store_metadata(old_addr, i32::MAX);
 
-        // free stack reconstruction metadata
-        for i in freeable_index {
-            stack.free_metadata(i as u32);
+            // コンパイル時メタデータの更新
+            stack.move_metadata(old_addr, new_addr);
         }
 
         Ok(())

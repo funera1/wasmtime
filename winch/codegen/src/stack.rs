@@ -395,8 +395,18 @@ impl Stack {
         M: MacroAssembler,
     {
         self.inner.push(val);
-        masm.store_metadata(addr, self.len() as i32);
+        self.metadata.insert(addr, self.len() as u32);
+        let _ = masm.store_metadata(addr, self.len() as i32);
         Ok(())
+    }
+
+    pub fn get_metadata(&mut self, addr: u32) -> u32 {
+        self.metadata[&addr]
+    }
+
+    pub fn move_metadata(&mut self, old_addr: u32, new_addr: u32) {
+        self.metadata.insert(new_addr, self.metadata[&old_addr]);
+        self.metadata.remove(&old_addr);
     }
 
     pub fn free_metadata(&mut self, addr: u32) {
