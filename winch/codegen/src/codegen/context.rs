@@ -821,14 +821,8 @@ impl<'a> CodeGenContext<'a, Emission> {
             }
         }
         for (old_addr, new_addr) in addrs {
-            // 実行時メタデータの更新
-            // 新しいデータの更新
-            let _ = masm.store_metadata(new_addr, stack.get_metadata(old_addr) as i32);
-            // 古いデータの削除
-            let _ = masm.store_metadata(old_addr, i32::MAX);
-
-            // コンパイル時メタデータの更新
-            stack.move_metadata(old_addr, new_addr);
+            // メタデータの更新
+            stack.move_metadata(masm, old_addr, new_addr);
         }
 
         Ok(())

@@ -404,7 +404,15 @@ impl Stack {
         self.metadata[&addr]
     }
 
-    pub fn move_metadata(&mut self, old_addr: u32, new_addr: u32) {
+    pub fn move_metadata<M>(&mut self, masm: &mut M, old_addr: u32, new_addr: u32) 
+    where
+        M: MacroAssembler,
+    {
+        // 実行時のメタデータ更新
+        let _ = masm.store_metadata(new_addr, self.get_metadata(old_addr) as i32);
+        let _ = masm.store_metadata(old_addr, i32::MAX);
+
+        // コンパイル時のメタデータ更新
         self.metadata.insert(new_addr, self.metadata[&old_addr]);
         self.metadata.remove(&old_addr);
     }
