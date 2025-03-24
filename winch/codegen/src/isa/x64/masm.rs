@@ -169,7 +169,7 @@ impl Masm for MacroAssembler {
         // NOTE: offsのベースアドレスが小さいと通常スタックと衝突して壊れる可能性あり
         let sp_offset = SPOffset::from_u32(200 + val_addr);
         self.asm
-            .mov_im(metadata, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+            .mov_im(metadata, &self.address_at_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
 
         Ok(())
     }

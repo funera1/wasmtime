@@ -402,7 +402,9 @@ impl<'a> CodeGenContext<'a, Emission> {
             Some(val) => {
                 let typed_reg = self.pop_to_reg(masm, None)?;
                 let dst = emit(masm, typed_reg.reg, RegImm::i32(val), OperandSize::S32)?;
-                self.stack.push(dst.into());
+
+                let _ = self.stack.push_with_metadata(masm, dst.into(), dst.reg.hw_enc() as u32);
+                // self.stack.push(dst.into());
             }
             None => self.binop(masm, OperandSize::S32, |masm, dst, src, size| {
                 emit(masm, dst, src.into(), size)

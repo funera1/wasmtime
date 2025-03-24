@@ -395,7 +395,9 @@ impl Stack {
     {
         self.inner.push(val);
         self.metadata.insert(addr, self.len() as u32);
-        let _ = masm.store_metadata(addr, self.len() as i32);
+        println!("(stack pos, reg_id) = ({}, {})", self.len(), addr);
+        // let _ = masm.store_metadata(addr, self.len() as i32);
+        let _ = masm.store_metadata(self.len() as u32, addr as i32);
         Ok(())
     }
 
@@ -408,8 +410,9 @@ impl Stack {
         M: MacroAssembler,
     {
         // 実行時のメタデータ更新
-        let _ = masm.store_metadata(new_addr, self.get_metadata(old_addr) as i32);
-        let _ = masm.store_metadata(old_addr, i32::MAX);
+        let _ = masm.store_metadata(self.get_metadata(old_addr), new_addr as i32);
+        // let _ = masm.store_metadata(new_addr, self.get_metadata(old_addr) as i32);
+        // let _ = masm.store_metadata(old_addr, i32::MAX);
 
         // コンパイル時のメタデータ更新
         self.metadata.insert(new_addr, self.metadata[&old_addr]);
