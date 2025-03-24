@@ -155,6 +155,11 @@ impl Masm for MacroAssembler {
 
     // val_addrはReg.hw_enc()もしくはmem.offsetを表している。metadataはスタック位置を表している
     fn store_metadata(&mut self, val_addr: u32, metadata: i32) -> Result<()> {
+        // debugのため、magic numberを挿入する
+        let sp_offset = SPOffset::from_u32(100);
+        self.asm
+            .mov_im(0xdeadbeafu32 as i32, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+
         // NOTE: offsのベースアドレスが小さいと通常スタックと衝突して壊れる可能性あり
         let sp_offset = SPOffset::from_u32(200 + val_addr);
         self.asm
