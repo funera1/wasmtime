@@ -1468,7 +1468,10 @@ pub(crate) trait MacroAssembler {
     /// false.
     fn ctz(&mut self, dst: WritableReg, src: Reg, size: OperandSize) -> Result<()>;
 
-    // Store metadata for stack reconstruction
+    /// set magic number (0xdeadbeaf)
+    fn set_magic_number(&mut self) -> Result<()>;
+
+    ///  Store metadata for stack reconstruction
     fn store_metadata(&mut self, val_addr: u32, metadata: i32) -> Result<()>;
 
     /// Push the register to the stack, returning the stack slot metadata.

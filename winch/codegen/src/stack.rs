@@ -1,8 +1,7 @@
 use crate::{
     codegen::CodeGenError, isa::reg::Reg,
     masm::{
-        MacroAssembler, OperandSize, RegImm, SPOffset,
-        StackSlot, Imm,
+        MacroAssembler, StackSlot,
     },
 };
 use anyhow::{anyhow, Result};

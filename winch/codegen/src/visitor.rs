@@ -1080,6 +1080,7 @@ where
 
     fn visit_i32_add(&mut self) -> Self::Output {
         self.context.i32_binop(self.masm, |masm, dst, src, size| {
+            masm.set_magic_number()?;
             masm.add(writable!(dst), dst, src, size)?;
             Ok(TypedReg::i32(dst))
         })
