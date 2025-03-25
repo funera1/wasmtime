@@ -7,6 +7,7 @@ use anyhow::Result;
 use smallvec::SmallVec;
 use std::marker::PhantomData;
 use std::ops::Range;
+use std::collections::HashMap;
 use wasmparser::{BinaryReader, FuncValidator, ValidatorResources};
 use wasmtime_environ::{TypeConvert, WasmValType};
 
@@ -94,6 +95,10 @@ pub(crate) struct Frame<P: CodeGenPhase> {
     /// The slot holding the address of the results area.
     pub results_base_slot: Option<LocalSlot>,
     marker: PhantomData<P>,
+
+    /// PCのチェックポイント用メタデータ
+    pub func_map: HashMap<u64, u64>,
+    pub offset_map: HashMap<u64, u64>,
 }
 
 impl Frame<Prologue> {
@@ -157,6 +162,8 @@ impl Frame<Prologue> {
             ),
             results_base_slot,
             marker: PhantomData,
+            func_map: HashMap::new(),
+            offset_map: HashMap::new(),
         })
     }
 
@@ -175,6 +182,8 @@ impl Frame<Prologue> {
             defined_locals_range: self.defined_locals_range,
             results_base_slot: self.results_base_slot,
             marker: PhantomData,
+            func_map: HashMap::new(),
+            offset_map: HashMap::new(),
         }
     }
 
