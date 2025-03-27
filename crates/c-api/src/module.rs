@@ -154,6 +154,15 @@ pub extern "C" fn wasmtime_module_clone(module: &wasmtime_module_t) -> Box<wasmt
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn wasmtime_module_raw_address_map(module: &wasmtime_module_t, ptr: *mut *const u8, len: *mut usize) {
+    let data = module.module.raw_address_map();
+    unsafe {
+        *ptr = data.as_ptr();
+        *len = data.len();
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_module_exports(
     module: &wasmtime_module_t,
     out: &mut wasm_exporttype_vec_t,

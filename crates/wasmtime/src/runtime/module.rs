@@ -1018,6 +1018,12 @@ impl Module {
             .map(|(offset, file_pos)| (offset as usize, file_pos.file_offset())),
         )
     }
+    
+    /// Get the raw map from `.text` section offsets to Wasm binary offsets for this
+    /// module.
+    pub fn raw_address_map(&self) -> &[u8] {
+        self.code_object().code_memory().address_map_data()
+    }
 
     /// Get this module's code object's `.text` section, containing its compiled
     /// executable code.

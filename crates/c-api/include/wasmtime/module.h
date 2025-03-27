@@ -62,6 +62,12 @@ WASM_API_EXTERN void wasmtime_module_delete(wasmtime_module_t *m);
 WASM_API_EXTERN wasmtime_module_t *wasmtime_module_clone(wasmtime_module_t *m);
 
 /**
+ * \brief Creates a shallow clone of the specified module, increasing the
+ * internal reference count.
+ */
+WASM_API_EXTERN void wasmtime_module_raw_address_map(wasmtime_module_t *m, uint8_t** ptr, size_t* len);
+
+/**
  * \brief Same as #wasm_module_imports, but for #wasmtime_module_t.
  */
 WASM_API_EXTERN void wasmtime_module_imports(const wasmtime_module_t *module,
