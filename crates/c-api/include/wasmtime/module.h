@@ -28,8 +28,8 @@ extern "C" {
 typedef struct wasmtime_module wasmtime_module_t;
 typedef struct wasmtime_addrmap_entry wasmtime_addrmap_entry_t;
 struct wasmtime_addrmap_entry {
-    uint32_t wasm_offset;
     uint32_t code_offset;
+    uint32_t wasm_offset;
 };
 
 #ifdef WASMTIME_FEATURE_COMPILER

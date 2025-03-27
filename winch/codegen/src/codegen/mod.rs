@@ -331,7 +331,7 @@ where
             ))??;
             // offset -> address
             self.context.frame.offset_map.insert(offset as u32, self.masm.cur_offset() as u32);
-            // println!("(wasm_offset, code_offset): ({}, {})", offset, self.masm.cur_offset());
+            println!("(wasm_offset, code_offset): ({}, {})", offset, self.masm.cur_offset());
         }
         validator.finish(body.original_position())?;
         return Ok(());
@@ -1373,7 +1373,6 @@ where
     fn source_location_before_visit_op(&mut self, offset: usize) -> Result<()> {
         let loc = SourceLoc::new(offset as u32);
         let rel = self.source_loc_from(loc);
-        println!("[source_location_before_visit_op]: (loc, rel): ({}, {})", loc, rel);
         self.source_location.current = self.masm.start_source_loc(rel)?;
         Ok(())
     }
