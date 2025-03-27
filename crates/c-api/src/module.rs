@@ -132,6 +132,13 @@ pub struct wasmtime_module_t {
 
 wasmtime_c_api_macros::declare_own!(wasmtime_module_t);
 
+#[repr(C)]
+pub struct wasmtime_addrmap_entry_t {
+    wasm_offset: u32,
+    code_offset: u32,
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_addrmap_entry_t);
+
 #[unsafe(no_mangle)]
 #[cfg(any(feature = "cranelift", feature = "winch"))]
 pub unsafe extern "C" fn wasmtime_module_new(
@@ -160,6 +167,49 @@ pub unsafe extern "C" fn wasmtime_module_raw_address_map(module: &wasmtime_modul
         *ptr = data.as_ptr();
         *len = data.len();
     }
+}
+
+fn new_wasmtime_addrmap_entry(k: usize, v: Option<u32>) -> wasmtime_addrmap_entry_t {
+    wasmtime_addrmap_entry_t {
+        wasm_offset: k as u32,
+        code_offset: v.unwrap_or(0),
+    }
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn wasmtime_module_address_map(module: &wasmtime_module_t, ptr: *mut *const wasmtime_addrmap_entry_t, len: *mut usize) {
+    // let data: Vec<wasmtime_addrmap_entry_t> = module.module.address_map()
+    //     .map(|(k, v)| wasmtime_addrmap_entry_t {
+    //         wasm_offset: k as u32, // usizeをu32に変換
+    //         code_offset: v.unwrap_or(0), // Option<u32>のNoneは0に変換
+    //     })
+    //     .collect();
+    //
+    let data: Vec<(usize, Option<u32>)> = module.module.address_map()
+        .map(|iter| iter.collect())
+        .expect("Failed to get wasmtime_module_address");
+
+    let addrmap: Vec<wasmtime_addrmap_entry_t> = data.into_iter()
+        .map(|(k, v)| wasmtime_addrmap_entry_t {
+            wasm_offset: k as u32, // usizeをu32に変換
+            code_offset: v.unwrap_or(0), // Option<u32>のNoneは0に変換
+        })
+        .collect();
+
+    let raw_ptr = addrmap.as_ptr();
+    let size = addrmap.len();
+    std::mem::forget(addrmap); // 所有権を C++ 側に移動
+
+    unsafe {
+        *ptr = raw_ptr;
+        *len = size;
+    }
+    
+    //
+    // unsafe {
+    //     *ptr = data.as_ptr();
+    //     *len = data.len();
+    // }
 }
 
 #[unsafe(no_mangle)]

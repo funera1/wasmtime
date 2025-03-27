@@ -26,6 +26,11 @@ extern "C" {
  * to use a module across multiple threads simultaneously.
  */
 typedef struct wasmtime_module wasmtime_module_t;
+typedef struct wasmtime_addrmap_entry wasmtime_addrmap_entry_t;
+struct wasmtime_addrmap_entry {
+    uint32_t wasm_offset;
+    uint32_t code_offset;
+};
 
 #ifdef WASMTIME_FEATURE_COMPILER
 
@@ -66,6 +71,12 @@ WASM_API_EXTERN wasmtime_module_t *wasmtime_module_clone(wasmtime_module_t *m);
  * internal reference count.
  */
 WASM_API_EXTERN void wasmtime_module_raw_address_map(wasmtime_module_t *m, uint8_t** ptr, size_t* len);
+
+/**
+ * \brief Creates a shallow clone of the specified module, increasing the
+ * internal reference count.
+ */
+WASM_API_EXTERN void wasmtime_module_address_map(wasmtime_module_t *m, wasmtime_addrmap_entry_t** ptr, size_t* len);
 
 /**
  * \brief Same as #wasm_module_imports, but for #wasmtime_module_t.
