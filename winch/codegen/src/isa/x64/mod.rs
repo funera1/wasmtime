@@ -140,7 +140,6 @@ impl TargetIsa for X64 {
 
         body_codegen.emit(&mut body, validator)?;
         let base = body_codegen.source_location.base;
-
         let names = body_codegen.env.take_name_map();
         Ok(CompiledFunction::new(
             masm.finalize(base)?,

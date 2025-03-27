@@ -1122,6 +1122,9 @@ pub(crate) trait MacroAssembler {
     /// The ABI details of the target.
     type ABI: abi::ABI;
 
+    /// Current offset from start of buffer.
+    fn cur_offset(&mut self) -> usize;
+
     /// Emit the function prologue.
     fn prologue(&mut self, vmctx: Reg) -> Result<()> {
         self.frame_setup()?;

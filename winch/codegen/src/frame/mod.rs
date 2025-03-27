@@ -98,7 +98,7 @@ pub(crate) struct Frame<P: CodeGenPhase> {
 
     /// PCのチェックポイント用メタデータ
     pub func_map: HashMap<u64, u64>,
-    pub offset_map: HashMap<u64, u64>,
+    pub offset_map: HashMap<u32, u32>,
 }
 
 impl Frame<Prologue> {

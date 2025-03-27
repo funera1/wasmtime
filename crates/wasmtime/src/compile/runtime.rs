@@ -95,7 +95,21 @@ impl<'a> CodeBuilder<'a> {
         let custom_alignment = self.custom_alignment();
         let (code, info_and_types) =
             self.compile_cached(super::build_artifacts, &custom_alignment)?;
-        Module::from_parts(self.engine, code, info_and_types)
+        let m = Module::from_parts(self.engine, code, info_and_types);
+        // debug: PCのチェックポイントのために、関数ごとの先頭アドレス情報をprintする
+        match m {
+            Ok(ref module) => {
+                let address_map: Vec<_> = module
+                    .address_map()
+                    .ok_or_else(|| anyhow::anyhow!("address maps must be enabled in the config"))?
+                    .collect();
+                println!("address_map: {:?}", address_map);
+            }
+            Err(_) => {}
+        }
+        
+        return m;
+
     }
 
     /// Same as [`CodeBuilder::compile_module`] except that it compiles a

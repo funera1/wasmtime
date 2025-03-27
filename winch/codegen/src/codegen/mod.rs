@@ -318,6 +318,10 @@ where
                 .set_ret_area(RetArea::slot(self.context.frame.results_base_slot.unwrap()));
         }
 
+        // debugのためにrsp+100番地に0xdeadbeafを埋め込む
+        self.masm.set_magic_number()?;
+
+        println!("(base_wasm_offset, base_code_offset): ({}, {})", body.original_position(), self.masm.cur_offset());
         while !body.eof() {
             let offset = body.original_position();
             body.visit_operator(&mut ValidateThenVisit(
@@ -325,6 +329,9 @@ where
                 self,
                 offset,
             ))??;
+            // offset -> address
+            self.context.frame.offset_map.insert(offset as u32, self.masm.cur_offset() as u32);
+            // println!("(wasm_offset, code_offset): ({}, {})", offset, self.masm.cur_offset());
         }
         validator.finish(body.original_position())?;
         return Ok(());
@@ -1366,6 +1373,7 @@ where
     fn source_location_before_visit_op(&mut self, offset: usize) -> Result<()> {
         let loc = SourceLoc::new(offset as u32);
         let rel = self.source_loc_from(loc);
+        println!("[source_location_before_visit_op]: (loc, rel): ({}, {})", loc, rel);
         self.source_location.current = self.masm.start_source_loc(rel)?;
         Ok(())
     }
