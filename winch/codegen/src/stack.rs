@@ -395,8 +395,6 @@ impl Stack {
     {
         self.inner.push(val);
         self.metadata.insert(addr, self.len() as u32);
-        println!("(stack pos, reg_id) = ({}, {})", self.len(), addr);
-        // let _ = masm.store_metadata(addr, self.len() as i32);
         let _ = masm.store_metadata(self.len() as u32, addr as i32);
         Ok(())
     }

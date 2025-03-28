@@ -321,7 +321,6 @@ where
         // debugのためにrsp+100番地に0xdeadbeafを埋め込む
         self.masm.set_magic_number()?;
 
-        println!("(base_wasm_offset, base_code_offset): ({}, {})", body.original_position(), self.masm.cur_offset());
         while !body.eof() {
             let offset = body.original_position();
             body.visit_operator(&mut ValidateThenVisit(
@@ -329,9 +328,6 @@ where
                 self,
                 offset,
             ))??;
-            // offset -> address
-            self.context.frame.offset_map.insert(offset as u32, self.masm.cur_offset() as u32);
-            println!("(wasm_offset, code_offset): ({}, {})", offset, self.masm.cur_offset());
         }
         validator.finish(body.original_position())?;
         return Ok(());
