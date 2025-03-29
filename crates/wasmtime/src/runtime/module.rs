@@ -1026,8 +1026,8 @@ impl Module {
     }
 
     /// Get the stack size maps
-    pub fn stack_size_maps(&self) {
-        let _ = self.inner.module.stack_size_maps();
+    pub fn stack_size_maps(&self) -> impl Iterator<Item = &[u32]> {
+        self.inner.module.stack_size_maps()
     }
 
     /// Get this module's code object's `.text` section, containing its compiled

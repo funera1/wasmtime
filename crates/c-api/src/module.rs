@@ -204,8 +204,25 @@ pub unsafe extern "C" fn wasmtime_module_address_map(
 #[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_module_stack_size_maps(
     module: &wasmtime_module_t, 
-) {
-    module.module.stack_size_maps();
+    ptr: *mut *const u32, 
+    lengths: *mut *const usize
+) -> usize {
+    let ssmaps: Vec<Vec<u32>> = module.module.stack_size_maps()
+        .map(|s| s.to_vec()).collect();
+
+    let ssmaps_flattened: Vec<u32> = ssmaps.iter().flatten().copied().collect();
+    let lens: Vec<usize> = ssmaps.iter().map(|v| v.len()).collect();
+    let count = lens.len();
+
+    unsafe {
+        *ptr = ssmaps_flattened.as_ptr();
+        *lengths = lens.as_ptr();
+    }
+    // NOTE: mem::forgetすることでRust側で勝手にメモリ解放されなくなる
+    std::mem::forget(ssmaps_flattened); 
+    std::mem::forget(lens); 
+
+    count
 }
 
 #[unsafe(no_mangle)]
