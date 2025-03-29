@@ -15,7 +15,6 @@ use cranelift_codegen::{
 };
 use smallvec::SmallVec;
 use std::marker::PhantomData;
-use std::collections::HashMap;
 use wasmparser::{
     BinaryReader, FuncValidator, MemArg, Operator, ValidatorResources, VisitOperator,
     VisitSimdOperator,
