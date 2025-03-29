@@ -187,6 +187,19 @@ impl CompiledModule {
         )
     }
 
+    /// Returns the stask size map information
+    pub fn stack_size_maps(&self) {
+        let iter = self.finished_functions().map(|(_, f)| f).zip(
+            self.funcs
+                .values()
+                .map(|f| &f.wasm_func_info.stack_size_map[..]),
+        );
+
+        for i in iter {
+            println!("[fn stack_size_map] {:?}", i);
+        }
+    }
+
     /// Lookups a defined function by a program counter value.
     ///
     /// Returns the defined function index and the relative address of

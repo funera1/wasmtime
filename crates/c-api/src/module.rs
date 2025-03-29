@@ -170,7 +170,12 @@ pub unsafe extern "C" fn wasmtime_module_raw_address_map(module: &wasmtime_modul
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn wasmtime_module_address_map(module: &wasmtime_module_t, ptr: *mut *const wasmtime_addrmap_entry_t, len: *mut usize, base_addr: *mut usize) {
+pub unsafe extern "C" fn wasmtime_module_address_map(
+    module: &wasmtime_module_t, 
+    ptr: *mut *const wasmtime_addrmap_entry_t, 
+    len: *mut usize, 
+    base_addr: *mut usize
+) {
     let data: Vec<(usize, Option<u32>)> = module.module.address_map()
         .map(|iter| iter.collect())
         .expect("Failed to get wasmtime_module_address");
@@ -194,6 +199,13 @@ pub unsafe extern "C" fn wasmtime_module_address_map(module: &wasmtime_module_t,
         *len = size;
         *base_addr = code_base_addr;
     }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn wasmtime_module_stack_size_maps(
+    module: &wasmtime_module_t, 
+) {
+    module.module.stack_size_maps();
 }
 
 #[unsafe(no_mangle)]

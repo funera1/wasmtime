@@ -208,6 +208,7 @@ fn annotate_asm(
                 .iter()
                 .map(|inst| {
                     let address = u32::try_from(inst.address()).unwrap();
+                    println!("[annotate_asm] inst.address: {}", address);
                     let wasm_offset = wasm_offset_for_address(function.offset, address);
                     Ok(AnnotatedInstruction {
                         wasm_offset,

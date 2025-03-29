@@ -1025,6 +1025,11 @@ impl Module {
         self.code_object().code_memory().address_map_data()
     }
 
+    /// Get the stack size maps
+    pub fn stack_size_maps(&self) {
+        let _ = self.inner.module.stack_size_maps();
+    }
+
     /// Get this module's code object's `.text` section, containing its compiled
     /// executable code.
     pub fn text(&self) -> &[u8] {

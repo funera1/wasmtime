@@ -76,6 +76,12 @@ WASM_API_EXTERN void wasmtime_module_raw_address_map(wasmtime_module_t *m, uint8
  * \brief Creates a shallow clone of the specified module, increasing the
  * internal reference count.
  */
+WASM_API_EXTERN void wasmtime_module_stack_size_maps(wasmtime_module_t *m);
+
+/**
+ * \brief Creates a shallow clone of the specified module, increasing the
+ * internal reference count.
+ */
 WASM_API_EXTERN void wasmtime_module_address_map(wasmtime_module_t *m, wasmtime_addrmap_entry_t** ptr, size_t* len, uintptr_t* base_addr);
 
 /**
