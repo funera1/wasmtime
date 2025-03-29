@@ -210,8 +210,11 @@ pub extern "C" fn wasmtime_module_stack_size_maps(
     let ssmaps: Vec<Vec<u32>> = module.module.stack_size_maps()
         .map(|s| s.to_vec()).collect();
 
+    // 一次配列としてCに渡す
     let ssmaps_flattened: Vec<u32> = ssmaps.iter().flatten().copied().collect();
+    // 各配列のサイズ
     let lens: Vec<usize> = ssmaps.iter().map(|v| v.len()).collect();
+    // stack size mapsのサイズ (=関数の個数)
     let count = lens.len();
 
     unsafe {
