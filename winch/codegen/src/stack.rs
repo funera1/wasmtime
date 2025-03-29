@@ -324,6 +324,7 @@ impl Val {
 pub(crate) struct Stack {
     // NB: The 64 is chosen arbitrarily. We can adjust as we see fit.
     inner: SmallVec<[Val; 64]>,
+    // TODO: 何のメタデータからわからない。(k, v) = (position in stack, reg_id/mem offset)
     metadata: HashMap<u32, u32>,
 }
 
@@ -389,6 +390,7 @@ impl Stack {
         self.inner.push(val);
     }
 
+    // addrにはreg.hw_enc()かメモリのオフセットが入る
     pub fn push_with_metadata<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
     where
         M: MacroAssembler,
@@ -409,8 +411,6 @@ impl Stack {
     {
         // 実行時のメタデータ更新
         let _ = masm.store_metadata(self.get_metadata(old_addr), new_addr as i32);
-        // let _ = masm.store_metadata(new_addr, self.get_metadata(old_addr) as i32);
-        // let _ = masm.store_metadata(old_addr, i32::MAX);
 
         // コンパイル時のメタデータ更新
         self.metadata.insert(new_addr, self.metadata[&old_addr]);

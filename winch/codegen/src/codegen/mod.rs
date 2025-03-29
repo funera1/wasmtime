@@ -15,6 +15,7 @@ use cranelift_codegen::{
 };
 use smallvec::SmallVec;
 use std::marker::PhantomData;
+use std::collections::HashMap;
 use wasmparser::{
     BinaryReader, FuncValidator, MemArg, Operator, ValidatorResources, VisitOperator,
     VisitSimdOperator,
@@ -96,6 +97,9 @@ where
     /// Local counter to track fuel consumption.
     pub fuel_consumed: i64,
     phase: PhantomData<P>,
+
+    /// stack size map
+    pub stack_size_map: Vec<u32>,
 }
 
 impl<'a, 'translation, 'data, M> CodeGen<'a, 'translation, 'data, M, Prologue>
@@ -120,6 +124,7 @@ where
             // Empty functions should consume at least 1 fuel unit.
             fuel_consumed: 1,
             phase: PhantomData,
+            stack_size_map: Vec::new(),
         }
     }
 
@@ -181,6 +186,7 @@ where
             control_frames: self.control_frames,
             fuel_consumed: self.fuel_consumed,
             phase: PhantomData,
+            stack_size_map: Vec::new(),
         })
     }
 
@@ -321,6 +327,11 @@ where
         // debugのためにrsp+100番地に0xdeadbeafを埋め込む
         self.masm.set_magic_number()?;
 
+        // チェックポイント時にスタックサイズを取得可能にする
+        // (k, v) = (wasm offset, stack size)
+        // let mut offset_to_size: HashMap<u32, u32>  = HashMap::new();
+        // let mut stack_size_map = Vec::new();
+
         while !body.eof() {
             let offset = body.original_position();
             body.visit_operator(&mut ValidateThenVisit(
@@ -328,6 +339,9 @@ where
                 self,
                 offset,
             ))??;
+
+            self.stack_size_map.push(self.context.stack.len() as u32);
+            // offset_to_size.insert(offset as u32, self.context.stack.len() as u32);
         }
         validator.finish(body.original_position())?;
         return Ok(());

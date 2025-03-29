@@ -50,6 +50,8 @@ pub struct CompiledFunctionMetadata {
     pub start_srcloc: FilePos,
     /// End source location.
     pub end_srcloc: FilePos,
+    /// Mapping of wasm offset and stack size
+    pub stack_size_map: Vec<u32>,
 }
 
 /// Compiled function: machine code body, jump table offsets, and unwind information.
@@ -69,16 +71,35 @@ impl CompiledFunction {
     /// Creates a [CompiledFunction] from a [`cranelift_codegen::MachBufferFinalized<Final>`]
     /// This function uses the information in the machine buffer to derive the traps and relocations
     /// fields. The compiled function metadata is loaded with the default values.
+    // pub fn new(
+    //     buffer: MachBufferFinalized<Final>,
+    //     name_map: PrimaryMap<ir::UserExternalNameRef, ir::UserExternalName>,
+    //     alignment: u32,
+    // ) -> Self {
+    //     Self {
+    //         buffer,
+    //         name_map,
+    //         alignment,
+    //         metadata: Default::default(),
+    //     }
+    // }
+
+    /// Creates a [CompiledFunction] from a [`cranelift_codegen::MachBufferFinalized<Final>`]
+    /// This function uses the information in the machine buffer to derive the traps and relocations
+    /// fields. The compiled function metadata is loaded with the default values.
     pub fn new(
         buffer: MachBufferFinalized<Final>,
         name_map: PrimaryMap<ir::UserExternalNameRef, ir::UserExternalName>,
         alignment: u32,
+        stack_size_map: Vec<u32>,
     ) -> Self {
+        let mut metadata = CompiledFunctionMetadata::default();
+        metadata.stack_size_map = stack_size_map;
         Self {
             buffer,
             name_map,
             alignment,
-            metadata: Default::default(),
+            metadata: metadata,
         }
     }
 
