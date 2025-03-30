@@ -449,9 +449,12 @@ impl Stack {
     {
         self.inner.push(val);
         self.mode_stack.push(true);
+        
+        // real stackのpositionを埋め込む
+        let stack_pos = self.get_real_stack_size();
 
-        self.metadata.insert(addr, self.len() as u32);
-        let _ = masm.store_metadata(self.len() as u32, addr as i32);
+        self.metadata.insert(addr, stack_pos);
+        let _ = masm.store_metadata(stack_pos, addr as i32);
         Ok(())
     }
 
