@@ -123,7 +123,6 @@ impl From<Local> for Val {
         Val::Local(local)
     }
 }
-
 impl From<Memory> for Val {
     fn from(mem: Memory) -> Self {
         Val::Memory(mem)
@@ -319,11 +318,58 @@ impl Val {
     }
 }
 
+#[derive(Default, Debug)]
+pub struct ModeStack {
+    // innerの各値がreal/virtを判定するflagを管理. real=実スタックに現れる. virt=現れない(local.get, constなど)
+    // real=true, virt=false
+    inner: SmallVec<[bool; 64]>,
+    // mode_sackのうちrealだけの数
+    real_count: u32,
+}
+
+impl ModeStack {
+    /// Allocate a new stack.
+    pub fn new() -> Self {
+        Self {
+            inner: Default::default(),
+            real_count: 0,
+        }
+    }
+    
+    // push
+    pub fn push(&mut self, is_real: bool) {
+       self.inner.push(is_real); 
+       if is_real {
+        self.real_count += 1;
+       }
+    }
+    
+    pub fn pop(&mut self) {
+       let is_real = self.inner.pop().expect("Failed to pop mode stack"); 
+       if is_real {
+        self.real_count -= 1;
+       }
+    }
+    
+    pub fn truncate(&mut self, truncate: usize) {
+       let pop_count = self.inner.len() - truncate;
+       for _ in 0..pop_count {
+        self.pop();
+       }
+    }
+    
+    pub fn get_real_count(&self) -> u32 {
+        self.real_count
+    }
+}
+
 /// The shadow stack used for compilation.
 #[derive(Default, Debug)]
 pub(crate) struct Stack {
     // NB: The 64 is chosen arbitrarily. We can adjust as we see fit.
     inner: SmallVec<[Val; 64]>,
+    // innerの各値がreal/virtを判定するflagを管理. real=実スタックに現れる. virt=現れない(local.get, constなど)
+    mode_stack: ModeStack,
     // TODO: 何のメタデータからわからない。(k, v) = (position in stack, reg_id/mem offset)
     metadata: HashMap<u32, u32>,
 }
@@ -333,6 +379,7 @@ impl Stack {
     pub fn new() -> Self {
         Self {
             inner: Default::default(),
+            mode_stack: Default::default(),
             metadata: HashMap::new(),
         }
     }
@@ -390,15 +437,31 @@ impl Stack {
         self.inner.push(val);
     }
 
+    pub fn push_virt_val(&mut self, val: Val) {
+        self.inner.push(val);    
+        self.mode_stack.push(false);
+    }
+
     // addrにはreg.hw_enc()かメモリのオフセットが入る
-    pub fn push_with_metadata<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
+    pub fn push_real_val<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
     where
         M: MacroAssembler,
     {
         self.inner.push(val);
+        self.mode_stack.push(true);
+
         self.metadata.insert(addr, self.len() as u32);
         let _ = masm.store_metadata(self.len() as u32, addr as i32);
         Ok(())
+    }
+
+    pub fn truncate(&mut self, truncate: usize) {
+        self.inner.truncate(truncate);
+        self.mode_stack.truncate(truncate);
+    }
+
+    pub fn get_real_stack_size(&mut self) -> u32 {
+        self.mode_stack.get_real_count()
     }
 
     pub fn get_metadata(&mut self, addr: u32) -> u32 {
@@ -438,6 +501,8 @@ impl Stack {
 
     /// Pops the top element of the stack, if any.
     pub fn pop(&mut self) -> Option<Val> {
+        self.mode_stack.pop();
+
         self.inner.pop()
     }
 

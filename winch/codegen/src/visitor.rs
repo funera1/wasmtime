@@ -538,23 +538,23 @@ where
     type Output = Result<()>;
 
     fn visit_i32_const(&mut self, val: i32) -> Self::Output {
-        self.context.stack.push(Val::i32(val));
+        self.context.stack.push_virt_val(Val::i32(val));
 
         Ok(())
     }
 
     fn visit_i64_const(&mut self, val: i64) -> Self::Output {
-        self.context.stack.push(Val::i64(val));
+        self.context.stack.push_virt_val(Val::i64(val));
         Ok(())
     }
 
     fn visit_f32_const(&mut self, val: Ieee32) -> Self::Output {
-        self.context.stack.push(Val::f32(val));
+        self.context.stack.push_virt_val(Val::f32(val));
         Ok(())
     }
 
     fn visit_f64_const(&mut self, val: Ieee64) -> Self::Output {
-        self.context.stack.push(Val::f64(val));
+        self.context.stack.push_virt_val(Val::f64(val));
         Ok(())
     }
 
