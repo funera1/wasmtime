@@ -28,13 +28,13 @@ extern "C" {
 typedef struct wasmtime_module wasmtime_module_t;
 typedef struct wasmtime_addrmap_entry wasmtime_addrmap_entry_t;
 struct wasmtime_addrmap_entry {
+    uint32_t wasm_offset;
     uint32_t code_offset;
-    uint32_t wasm_offset;
 };
-typedef struct wasmtime_stacksizemap_entry wasmtime_stacksizemap_entry_t;
-struct wasmtime_stacksizemap_entry {
-    uint32_t stack_size;
+typedef struct wasmtime_ssmap_entry wasmtime_ssmap_entry_t;
+struct wasmtime_ssmap_entry {
     uint32_t wasm_offset;
+    uint32_t stack_size;
 };
 
 #ifdef WASMTIME_FEATURE_COMPILER
@@ -81,7 +81,7 @@ WASM_API_EXTERN void wasmtime_module_raw_address_map(wasmtime_module_t *m, uint8
  * \brief Creates a shallow clone of the specified module, increasing the
  * internal reference count.
  */
-WASM_API_EXTERN void wasmtime_module_stack_size_maps(wasmtime_module_t *m, wasmtime_stacksizemap_entry_t **ptr, size_t *len);
+WASM_API_EXTERN void wasmtime_module_stack_size_maps(wasmtime_module_t *m, wasmtime_ssmap_entry_t **ptr, size_t *len);
 
 /**
  * \brief Creates a shallow clone of the specified module, increasing the

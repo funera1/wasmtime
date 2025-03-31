@@ -134,15 +134,15 @@ wasmtime_c_api_macros::declare_own!(wasmtime_module_t);
 
 #[repr(C)]
 pub struct wasmtime_addrmap_entry_t {
-    code_offset: u32,
     wasm_offset: u32,
+    code_offset: u32,
 }
 wasmtime_c_api_macros::declare_own!(wasmtime_addrmap_entry_t);
 
 #[repr(C)]
 pub struct wasmtime_stacksizemap_entry_t {
-    stack_size: u32,
     wasm_offset: u32,
+    stack_size: u32,
 }
 wasmtime_c_api_macros::declare_own!(wasmtime_stacksizemap_entry_t);
 
@@ -188,9 +188,9 @@ pub unsafe extern "C" fn wasmtime_module_address_map(
         .expect("Failed to get wasmtime_module_address");
 
     let addrmap: Vec<wasmtime_addrmap_entry_t> = data.into_iter()
-        .map(|(k, v)| wasmtime_addrmap_entry_t {
-            code_offset: k as u32, // usizeをu32に変換
-            wasm_offset: v.unwrap_or(0), // Option<u32>のNoneは0に変換
+        .map(|(code_offset, wasm_offset)| wasmtime_addrmap_entry_t {
+            code_offset: code_offset as u32, // usizeをu32に変換
+            wasm_offset: wasm_offset.unwrap_or(0), // Option<u32>のNoneは0に変換
         })
         .collect();
 
