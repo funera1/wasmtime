@@ -1570,9 +1570,9 @@ where
         let context = &mut self.context;
         let slot = context.frame.get_wasm_local(index);
         match slot.ty {
-            I32 | I64 | F32 | F64 | V128 => context.stack.push(Val::local(index, slot.ty)),
+            I32 | I64 | F32 | F64 | V128 => context.stack.push_virt_val(Val::local(index, slot.ty)),
             Ref(rt) => match rt.heap_type {
-                WasmHeapType::Func => context.stack.push(Val::local(index, slot.ty)),
+                WasmHeapType::Func => context.stack.push_virt_val(Val::local(index, slot.ty)),
                 _ => bail!(CodeGenError::unsupported_wasm_type()),
             },
         }
