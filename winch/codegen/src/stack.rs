@@ -198,6 +198,14 @@ impl Val {
         }
     }
 
+    /// Check whether the value is local
+    pub fn is_local(&self) -> bool {
+        match *self {
+            Self::Local(_) => true,
+            _ => false,
+        }
+    }
+
     /// Check whether the value is local with a particular index.
     pub fn is_local_at_index(&self, index: u32) -> bool {
         match *self {
@@ -436,13 +444,35 @@ impl Stack {
         self.inner.push(val);
     }
 
-    pub fn push_virt_val(&mut self, val: Val) {
+    pub fn push_with_tag<M>(&mut self, masm: &mut M, val: Val) 
+    where
+        M: MacroAssembler,
+    {
+        if val.is_reg() {
+            let reg = val.unwrap_reg();
+            let addr = reg.reg.hw_enc() as u32;
+            self.push_real_val(masm, val, addr).expect("failed to push reg");
+        }
+        else if val.is_mem() {
+            error!("Not supported that val is mem");
+        }
+        else if val.is_const() || val.is_local() {
+            self.push_virt_val(val);
+        }
+        else {
+            error!("Failed to push_with_tag");
+        }
+
+        // self.inner.push(val);
+    }
+
+    fn push_virt_val(&mut self, val: Val) {
         self.inner.push(val);    
         self.mode_stack.push(false);
     }
 
     // addrにはreg.hw_enc()かメモリのオフセットが入る
-    pub fn push_real_val<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
+    fn push_real_val<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
     where
         M: MacroAssembler,
     {

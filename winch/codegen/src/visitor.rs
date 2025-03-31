@@ -1,5 +1,3 @@
-//! This module is the central place for machine code emission.
-//! It defines an implementation of wasmparser's Visitor trait
 //! for `CodeGen`; which defines a visitor per op-code,
 //! which validates and dispatches to the corresponding
 //! machine code emitter.
@@ -538,23 +536,23 @@ where
     type Output = Result<()>;
 
     fn visit_i32_const(&mut self, val: i32) -> Self::Output {
-        self.context.stack.push_virt_val(Val::i32(val));
+        self.context.stack.push_with_tag(self.masm, Val::i32(val));
 
         Ok(())
     }
 
     fn visit_i64_const(&mut self, val: i64) -> Self::Output {
-        self.context.stack.push_virt_val(Val::i64(val));
+        self.context.stack.push_with_tag(self.masm, Val::i64(val));
         Ok(())
     }
 
     fn visit_f32_const(&mut self, val: Ieee32) -> Self::Output {
-        self.context.stack.push_virt_val(Val::f32(val));
+        self.context.stack.push_with_tag(self.masm, Val::f32(val));
         Ok(())
     }
 
     fn visit_f64_const(&mut self, val: Ieee64) -> Self::Output {
-        self.context.stack.push_virt_val(Val::f64(val));
+        self.context.stack.push_with_tag(self.masm, Val::f64(val));
         Ok(())
     }
 
@@ -1570,9 +1568,9 @@ where
         let context = &mut self.context;
         let slot = context.frame.get_wasm_local(index);
         match slot.ty {
-            I32 | I64 | F32 | F64 | V128 => context.stack.push_virt_val(Val::local(index, slot.ty)),
+            I32 | I64 | F32 | F64 | V128 => context.stack.push_with_tag(self.masm, Val::local(index, slot.ty)),
             Ref(rt) => match rt.heap_type {
-                WasmHeapType::Func => context.stack.push_virt_val(Val::local(index, slot.ty)),
+                WasmHeapType::Func => context.stack.push_with_tag(self.masm, Val::local(index, slot.ty)),
                 _ => bail!(CodeGenError::unsupported_wasm_type()),
             },
         }
@@ -2117,7 +2115,7 @@ where
 
     fn visit_local_tee(&mut self, index: u32) -> Self::Output {
         let typed_reg = self.emit_set_local(index)?;
-        self.context.stack.push_real_val(self.masm, typed_reg.into(), typed_reg.reg.hw_enc() as u32)?;
+        self.context.stack.push_with_tag(self.masm, typed_reg.into());
 
         Ok(())
     }
