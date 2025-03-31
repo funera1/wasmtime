@@ -1026,7 +1026,7 @@ impl Module {
     }
 
     /// Get the stack size maps
-    pub fn stack_size_maps(&self) -> impl Iterator<Item = &[u32]> {
+    pub fn stack_size_maps(&self) -> impl Iterator<Item = &[(u32, u32)]> {
         self.inner.module.stack_size_maps()
     }
 

@@ -50,8 +50,8 @@ pub struct CompiledFunctionMetadata {
     pub start_srcloc: FilePos,
     /// End source location.
     pub end_srcloc: FilePos,
-    /// Mapping of wasm offset and stack size
-    pub stack_size_map: Vec<u32>,
+    /// Mapping of wasm offset and stack size. (wasm offset, stack size)
+    pub stack_size_map: Vec<(u32, u32)>,
 }
 
 /// Compiled function: machine code body, jump table offsets, and unwind information.
@@ -91,7 +91,7 @@ impl CompiledFunction {
         buffer: MachBufferFinalized<Final>,
         name_map: PrimaryMap<ir::UserExternalNameRef, ir::UserExternalName>,
         alignment: u32,
-        stack_size_map: Vec<u32>,
+        stack_size_map: Vec<(u32, u32)>,
     ) -> Self {
         let mut metadata = CompiledFunctionMetadata::default();
         metadata.stack_size_map = stack_size_map;

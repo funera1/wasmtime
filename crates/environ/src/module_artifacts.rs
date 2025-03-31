@@ -30,7 +30,7 @@ pub struct WasmFunctionInfo {
     pub start_srcloc: FilePos,
     pub stack_maps: Box<[StackMapInformation]>,
     /// [wasm offset, stack size] for checkpointing
-    pub stack_size_map: Vec<u32>,
+    pub stack_size_map: Vec<(u32, u32)>,
 }
 
 /// Description of where a function is located in the text section of a

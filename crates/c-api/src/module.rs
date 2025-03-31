@@ -139,6 +139,13 @@ pub struct wasmtime_addrmap_entry_t {
 }
 wasmtime_c_api_macros::declare_own!(wasmtime_addrmap_entry_t);
 
+#[repr(C)]
+pub struct wasmtime_stacksizemap_entry_t {
+    stack_size: u32,
+    wasm_offset: u32,
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_stacksizemap_entry_t);
+
 #[unsafe(no_mangle)]
 #[cfg(any(feature = "cranelift", feature = "winch"))]
 pub unsafe extern "C" fn wasmtime_module_new(
@@ -204,28 +211,28 @@ pub unsafe extern "C" fn wasmtime_module_address_map(
 #[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_module_stack_size_maps(
     module: &wasmtime_module_t, 
-    ptr: *mut *const u32, 
-    lengths: *mut *const usize
-) -> usize {
-    let ssmaps: Vec<Vec<u32>> = module.module.stack_size_maps()
-        .map(|s| s.to_vec()).collect();
-
-    // 一次配列としてCに渡す
-    let ssmaps_flattened: Vec<u32> = ssmaps.iter().flatten().copied().collect();
-    // 各配列のサイズ
-    let lens: Vec<usize> = ssmaps.iter().map(|v| v.len()).collect();
-    // stack size mapsのサイズ (=関数の個数)
-    let count = lens.len();
+    ptr: *mut *const wasmtime_stacksizemap_entry_t, 
+    lengths: *mut usize
+) {
+    let data: Vec<(u32, u32)> = module.module.stack_size_maps()
+        .flat_map(|s| s.to_vec())
+        .collect();
+    
+    let ssmap: Vec<wasmtime_stacksizemap_entry_t> = data.into_iter()
+        .map(|(wasm_offset, stack_size)| wasmtime_stacksizemap_entry_t {
+            wasm_offset: wasm_offset,
+            stack_size: stack_size,
+        })
+        .collect();
+    
+    let raw_ptr = ssmap.as_ptr();
+    let len = ssmap.len();
+    std::mem::forget(ssmap);
 
     unsafe {
-        *ptr = ssmaps_flattened.as_ptr();
-        *lengths = lens.as_ptr();
+        *ptr = raw_ptr;
+        *lengths = len;
     }
-    // NOTE: mem::forgetすることでRust側で勝手にメモリ解放されなくなる
-    std::mem::forget(ssmaps_flattened); 
-    std::mem::forget(lens); 
-
-    count
 }
 
 #[unsafe(no_mangle)]

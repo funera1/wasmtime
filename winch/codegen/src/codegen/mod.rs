@@ -98,7 +98,7 @@ where
     phase: PhantomData<P>,
 
     /// stack size map
-    pub stack_size_map: Vec<u32>,
+    pub stack_size_map: Vec<(u32, u32)>,
 }
 
 impl<'a, 'translation, 'data, M> CodeGen<'a, 'translation, 'data, M, Prologue>
@@ -326,11 +326,6 @@ where
         // debugのためにrsp+100番地に0xdeadbeafを埋め込む
         self.masm.set_magic_number()?;
 
-        // チェックポイント時にスタックサイズを取得可能にする
-        // (k, v) = (wasm offset, stack size)
-        // let mut offset_to_size: HashMap<u32, u32>  = HashMap::new();
-        // let mut stack_size_map = Vec::new();
-
         while !body.eof() {
             let offset = body.original_position();
             body.visit_operator(&mut ValidateThenVisit(
@@ -339,7 +334,7 @@ where
                 offset,
             ))??;
 
-            self.stack_size_map.push(self.context.stack.get_real_stack_size());
+            self.stack_size_map.push((offset as u32, self.context.stack.get_real_stack_size()));
             // offset_to_size.insert(offset as u32, self.context.stack.len() as u32);
         }
         validator.finish(body.original_position())?;
