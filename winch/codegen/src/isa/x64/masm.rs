@@ -5,6 +5,7 @@ use super::{
     regs::{self, rbp, rsp},
 };
 use anyhow::{anyhow, bail, Result};
+use log::info;
 
 use crate::masm::{
     DivKind, ExtAddKind, ExtMulKind, Extend, ExtendKind, ExtractLaneKind, FloatCmpKind,
@@ -154,7 +155,7 @@ impl Masm for MacroAssembler {
     }
     
     fn set_magic_number(&mut self) -> Result<()> {
-        println!("Setting magic number");
+        info!("Embedded magic number (0xdeadbeaf) to [rsp+100]");
         // debugのため、magic numberを挿入する
         let sp_offset = SPOffset::from_u32(100);
         self.asm
