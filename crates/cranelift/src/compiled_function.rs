@@ -68,22 +68,7 @@ pub struct CompiledFunction {
 }
 
 impl CompiledFunction {
-    /// Creates a [CompiledFunction] from a [`cranelift_codegen::MachBufferFinalized<Final>`]
-    /// This function uses the information in the machine buffer to derive the traps and relocations
-    /// fields. The compiled function metadata is loaded with the default values.
-    // pub fn new(
-    //     buffer: MachBufferFinalized<Final>,
-    //     name_map: PrimaryMap<ir::UserExternalNameRef, ir::UserExternalName>,
-    //     alignment: u32,
-    // ) -> Self {
-    //     Self {
-    //         buffer,
-    //         name_map,
-    //         alignment,
-    //         metadata: Default::default(),
-    //     }
-    // }
-
+    // TODO: stack_size_mapを渡さないインターフェースで実装可能なら実装する
     /// Creates a [CompiledFunction] from a [`cranelift_codegen::MachBufferFinalized<Final>`]
     /// This function uses the information in the machine buffer to derive the traps and relocations
     /// fields. The compiled function metadata is loaded with the default values.

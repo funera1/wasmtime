@@ -1065,6 +1065,7 @@ impl FunctionCompiler<'_> {
             WasmFunctionInfo {
                 start_srcloc: compiled_function.metadata().address_map.start_srcloc,
                 stack_maps: stack_maps.into(),
+                // TODO: implementation
                 stack_size_map: Vec::new(),
             },
             compiled_function,

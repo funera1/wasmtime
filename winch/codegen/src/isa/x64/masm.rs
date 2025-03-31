@@ -103,10 +103,6 @@ impl Masm for MacroAssembler {
     type Ptr = u8;
     type ABI = X64ABI;
 
-    fn cur_offset(&mut self) -> usize {
-        self.asm.buffer().cur_offset() as usize
-    }
-
     fn frame_setup(&mut self) -> Result<()> {
         let frame_pointer = rbp();
         let stack_pointer = rsp();

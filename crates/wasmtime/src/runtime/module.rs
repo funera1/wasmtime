@@ -1019,12 +1019,6 @@ impl Module {
         )
     }
     
-    /// Get the raw map from `.text` section offsets to Wasm binary offsets for this
-    /// module.
-    pub fn raw_address_map(&self) -> &[u8] {
-        self.code_object().code_memory().address_map_data()
-    }
-
     /// Get the stack size maps
     pub fn stack_size_maps(&self) -> impl Iterator<Item = &[(u32, u32)]> {
         self.inner.module.stack_size_maps()

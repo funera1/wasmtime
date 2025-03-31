@@ -133,8 +133,6 @@ impl wasmtime_environ::Compiler for Compiler {
         }
 
         let stack_size_map = func.metadata().stack_size_map.clone();
-        // debug
-        println!("stack size map: {:?}", stack_size_map);
 
         Ok((
             WasmFunctionInfo {

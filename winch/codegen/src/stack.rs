@@ -1,9 +1,6 @@
-use crate::{
-    codegen::CodeGenError, isa::reg::Reg,
-    masm::{
-        MacroAssembler, StackSlot,
-    },
-};
+use crate::
+{codegen::CodeGenError, 
+isa::reg::Reg, masm::{MacroAssembler, StackSlot}};
 use anyhow::{anyhow, Result};
 use smallvec::SmallVec;
 use wasmparser::{Ieee32, Ieee64};

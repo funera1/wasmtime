@@ -335,7 +335,6 @@ where
             ))??;
 
             self.stack_size_map.push((offset as u32, self.context.stack.get_real_stack_size()));
-            // offset_to_size.insert(offset as u32, self.context.stack.len() as u32);
         }
         validator.finish(body.original_position())?;
         return Ok(());
