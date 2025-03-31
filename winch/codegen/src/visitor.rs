@@ -2117,7 +2117,7 @@ where
 
     fn visit_local_tee(&mut self, index: u32) -> Self::Output {
         let typed_reg = self.emit_set_local(index)?;
-        self.context.stack.push(typed_reg.into());
+        self.context.stack.push_real_val(self.masm, typed_reg.into(), typed_reg.reg.hw_enc() as u32)?;
 
         Ok(())
     }
