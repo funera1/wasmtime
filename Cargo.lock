@@ -4947,6 +4947,7 @@ dependencies = [
  "anyhow",
  "cranelift-codegen",
  "gimli",
+ "log",
  "regalloc2",
  "smallvec",
  "target-lexicon",

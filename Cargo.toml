@@ -68,7 +68,6 @@ serde_derive = { workspace = true }
 serde_json = { workspace = true }
 wasmparser = { workspace = true }
 tracing = { workspace = true }
-log = { workspace = true }
 humantime = { workspace = true }
 tempfile = { workspace = true, optional = true }
 
@@ -277,8 +276,6 @@ cranelift-control = { path = "cranelift/control", version = "0.118.0" }
 cranelift = { path = "cranelift/umbrella", version = "0.118.0" }
 
 winch-codegen = { path = "winch/codegen", version = "=31.0.0" }
-
-wasi-preview1-component-adapter = { path = "crates/wasi-preview1-component-adapter" }
 byte-array-literals = { path = "crates/wasi-preview1-component-adapter/byte-array-literals" }
 
 # Bytecode Alliance maintained dependencies:
@@ -292,7 +289,6 @@ cap-rand = { version = "3.4.1", features = ["small_rng"] }
 cap-fs-ext = "3.4.1"
 cap-net-ext = "3.4.1"
 cap-time-ext = "3.4.1"
-cap-tempfile = "3.4.1"
 fs-set-times = "0.20.1"
 system-interface = { version = "0.27.1", features = ["cap_std_impls"] }
 io-lifetimes = { version = "2.0.3", default-features = false }
@@ -347,7 +343,6 @@ sptr = "0.3.2"
 serde = { version = "1.0.215", default-features = false, features = ['alloc'] }
 serde_derive = "1.0.188"
 serde_json = "1.0.80"
-glob = "0.3.0"
 libfuzzer-sys = "0.4.8"
 walkdir = "2.3.3"
 cfg-if = "1.0"
@@ -538,22 +533,6 @@ harness = false
 [[bench]]
 name = "wasi"
 harness = false
-
-[profile.release.package.wasi-preview1-component-adapter]
-opt-level = 's'
-strip = 'debuginfo'
-
-[profile.dev.package.wasi-preview1-component-adapter]
-# Make dev look like a release build since this adapter module won't work with
-# a debug build that uses data segments and such.
-incremental = false
-opt-level = 's'
-# Omit assertions, which include failure messages which require string
-# initializers.
-debug-assertions = false
-# Omit integer overflow checks, which include failure messages which require
-# string initializers.
-overflow-checks = false
 
 # Same as `wasi-preview1-component-adapter` above
 [profile.dev.package.wit-bindgen]

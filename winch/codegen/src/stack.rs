@@ -6,6 +6,7 @@ use smallvec::SmallVec;
 use wasmparser::{Ieee32, Ieee64};
 use wasmtime_environ::WasmValType;
 use std::collections::HashMap;
+use log::error;
 
 /// A typed register value used to track register values in the value
 /// stack.
@@ -431,6 +432,7 @@ impl Stack {
 
     /// Push a value to the stack.
     pub fn push(&mut self, val: Val) {
+        error!("Not supported instruction");
         self.inner.push(val);
     }
 
