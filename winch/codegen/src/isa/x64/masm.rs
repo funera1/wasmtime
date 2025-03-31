@@ -155,11 +155,13 @@ impl Masm for MacroAssembler {
     }
     
     fn set_magic_number(&mut self) -> Result<()> {
-        info!("Embedded magic number (0xdeadbeaf) to [rsp+100]");
+        // TODO: context.frame.local_size分を使っちゃだめなので、その分を開けて確保＆使用する
+        info!("Embedded magic number (0xdeadbeaf) to [rbp-4]");
         // debugのため、magic numberを挿入する
-        let sp_offset = SPOffset::from_u32(100);
+        //
+        let sp_offset = SPOffset::from_u32(4);
         self.asm
-            .mov_im(0xdeadbeafu32 as i32, &self.address_at_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+            .mov_im(0xdeadbeafu32 as i32, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
 
         Ok(())
     }
@@ -167,9 +169,9 @@ impl Masm for MacroAssembler {
     // val_addrはReg.hw_enc()もしくはmem.offsetを表している。metadataはスタック位置を表している
     fn store_metadata(&mut self, val_addr: u32, metadata: i32) -> Result<()> {
         // NOTE: offsのベースアドレスが小さいと通常スタックと衝突して壊れる可能性あり
-        let sp_offset = SPOffset::from_u32(200 + val_addr);
+        let sp_offset = SPOffset::from_u32(4*(val_addr+1));
         self.asm
-            .mov_im(metadata, &self.address_at_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+            .mov_im(metadata, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
 
         Ok(())
     }

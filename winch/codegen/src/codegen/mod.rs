@@ -920,7 +920,7 @@ where
             this.masm.wasm_load(src, writable!(dst), kind)?;
             this.context
                 .stack
-                .push(TypedReg::new(target_type, dst).into());
+                .push_with_tag(this.masm, TypedReg::new(target_type, dst).into());
             this.context.free_reg(addr);
             Ok(())
         };
@@ -1104,7 +1104,7 @@ where
             ShiftKind::ShrU,
             heap_data.index_type().try_into()?,
         )?;
-        self.context.stack.push(dst.into());
+        self.context.stack.push_with_tag(self.masm, dst.into());
         Ok(())
     }
 
