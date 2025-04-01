@@ -747,13 +747,13 @@ impl<'a> CodeGenContext<'a, Emission> {
                     );
 
                     let typed_reg = TypedReg::new(*ty, self.reg(*reg, masm)?);
-                    self.stack.push(typed_reg.into());
+                    self.stack.push_with_tag(masm, typed_reg.into());
                 }
                 ABIOperand::Stack { ty, offset, size } => match area.unwrap() {
                     RetArea::SP(sp_offset) => {
                         let slot =
                             StackSlot::new(SPOffset::from_u32(sp_offset.as_u32() - offset), *size);
-                        self.stack.push(Val::mem(*ty, slot));
+                        self.stack.push_with_tag(masm, Val::mem(*ty, slot));
                     }
                     // This function is only expected to be called when dealing
                     // with control flow and when calling functions; as a
