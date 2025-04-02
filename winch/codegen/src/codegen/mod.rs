@@ -172,7 +172,17 @@ where
                 _ => {}
             }
         }
-
+        
+        // restore code 挿入
+        self.masm.state_restore(IntCmpKind::Ne, lhs, taken);
+        // masm.branch(
+        //     IntCmpKind::Eq,
+        //     top.reg.into(),
+        //     top.reg.into(),
+        //     cont,
+        //     OperandSize::S32,
+        // )?;
+        //
         self.masm.end_source_loc()?;
 
         Ok(CodeGen {

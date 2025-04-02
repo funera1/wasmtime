@@ -1134,6 +1134,9 @@ pub(crate) trait MacroAssembler {
     /// Generate the frame restore sequence.
     fn frame_restore(&mut self) -> Result<()>;
 
+    /// Generate the state restore sequence for Wasm C/R.
+    fn state_restore(&mut self, kind: IntCmpKind, lhs: Reg, taken: MachLabel) -> Result<()>;
+
     /// Emit a stack check.
     fn check_stack(&mut self, vmctx: Reg) -> Result<()>;
 

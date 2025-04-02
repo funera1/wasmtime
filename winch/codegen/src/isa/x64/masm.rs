@@ -837,6 +837,26 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
+    fn state_restore(
+        &mut self,
+        kind: IntCmpKind,
+        lhs: Reg,
+        taken: MachLabel,
+    ) -> Result<()> {
+        // restore modeか確認するコードを挿入
+        self.cmp(lhs, RegImm::Imm(I::i32(1)), OperandSize::S32);
+        self.asm.jmp_if(kind, taken);
+
+        self.unreachable();
+        
+        // restore modeなら、state(pc, stack)を復元
+        
+        // debug_assert_eq!(self.sp_offset, 0);
+        // self.asm.pop_r(writable!(rbp()));
+        // self.asm.ret();
+        Ok(())
+    }
+
     fn finalize(mut self, base: Option<SourceLoc>) -> Result<MachBufferFinalized<Final>> {
         if let Some(patch) = self.stack_max_use_add {
             patch.finalize(i32::try_from(self.sp_max).unwrap(), self.asm.buffer_mut());
