@@ -1,3 +1,5 @@
+//! This module is the central place for machine code emission.
+//! It defines an implementation of wasmparser's Visitor trait
 //! for `CodeGen`; which defines a visitor per op-code,
 //! which validates and dispatches to the corresponding
 //! machine code emitter.
