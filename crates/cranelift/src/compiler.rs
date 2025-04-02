@@ -1010,6 +1010,8 @@ impl FunctionCompiler<'_> {
             compiled_code.buffer.clone(),
             context.func.params.user_named_funcs().clone(),
             alignment,
+            // TODO: implementation
+            Vec::new(),
         );
 
         if let Some((body, tunables)) = body_and_tunables {
@@ -1064,6 +1066,8 @@ impl FunctionCompiler<'_> {
             WasmFunctionInfo {
                 start_srcloc: compiled_function.metadata().address_map.start_srcloc,
                 stack_maps: stack_maps.into(),
+                // TODO: implementation
+                stack_size_map: Vec::new(),
             },
             compiled_function,
         ))

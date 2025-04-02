@@ -357,7 +357,8 @@ impl<'a> CodeGenContext<'a, Emission> {
         let dst = self.pop_to_reg(masm, None)?;
         let dst = emit(masm, dst.reg, src.reg.into(), size)?;
         self.free_reg(src);
-        self.stack.push(dst.into());
+        // self.stack.push(dst.into());
+        let _ = self.stack.push_with_tag(masm, dst.into());
 
         Ok(())
     }
@@ -401,7 +402,9 @@ impl<'a> CodeGenContext<'a, Emission> {
             Some(val) => {
                 let typed_reg = self.pop_to_reg(masm, None)?;
                 let dst = emit(masm, typed_reg.reg, RegImm::i32(val), OperandSize::S32)?;
-                self.stack.push(dst.into());
+
+                self.stack.push_with_tag(masm, dst.into());
+                // self.stack.push(dst.into());
             }
             None => self.binop(masm, OperandSize::S32, |masm, dst, src, size| {
                 emit(masm, dst, src.into(), size)
@@ -639,7 +642,9 @@ impl<'a> CodeGenContext<'a, Emission> {
             for v in stack_mut[truncate..].into_iter().rev() {
                 f(&mut self.regalloc, v)?
             }
-            stack_mut.truncate(truncate);
+
+            // stack_mut.truncate(truncate);
+            self.stack.truncate(truncate);
         }
 
         Ok(())
@@ -742,13 +747,13 @@ impl<'a> CodeGenContext<'a, Emission> {
                     );
 
                     let typed_reg = TypedReg::new(*ty, self.reg(*reg, masm)?);
-                    self.stack.push(typed_reg.into());
+                    self.stack.push_with_tag(masm, typed_reg.into());
                 }
                 ABIOperand::Stack { ty, offset, size } => match area.unwrap() {
                     RetArea::SP(sp_offset) => {
                         let slot =
                             StackSlot::new(SPOffset::from_u32(sp_offset.as_u32() - offset), *size);
-                        self.stack.push(Val::mem(*ty, slot));
+                        self.stack.push_with_tag(masm, Val::mem(*ty, slot));
                     }
                     // This function is only expected to be called when dealing
                     // with control flow and when calling functions; as a
@@ -797,10 +802,14 @@ impl<'a> CodeGenContext<'a, Emission> {
         frame: &Frame<Emission>,
         masm: &mut M,
     ) -> Result<()> {
+        let mut addrs = Vec::new();
         for v in stack.inner_mut() {
             match v {
                 Val::Reg(r) => {
                     let slot = masm.push(r.reg, r.ty.try_into()?)?;
+                    // metadataの変更をするために、addrを集める。　
+                    // TODO: 16を定数にする
+                    addrs.push((r.reg.hw_enc() as u32, 16 + slot.offset.as_u32()));
                     regalloc.free(r.reg);
                     *v = Val::mem(r.ty, slot);
                 }
@@ -814,6 +823,10 @@ impl<'a> CodeGenContext<'a, Emission> {
                 }
                 _ => {}
             }
+        }
+        for (old_addr, new_addr) in addrs {
+            // メタデータの更新
+            stack.move_metadata(masm, old_addr, new_addr);
         }
 
         Ok(())

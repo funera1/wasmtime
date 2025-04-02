@@ -96,6 +96,9 @@ where
     /// Local counter to track fuel consumption.
     pub fuel_consumed: i64,
     phase: PhantomData<P>,
+
+    /// stack size map
+    pub stack_size_map: Vec<(u32, u32)>,
 }
 
 impl<'a, 'translation, 'data, M> CodeGen<'a, 'translation, 'data, M, Prologue>
@@ -120,6 +123,7 @@ where
             // Empty functions should consume at least 1 fuel unit.
             fuel_consumed: 1,
             phase: PhantomData,
+            stack_size_map: Vec::new(),
         }
     }
 
@@ -181,6 +185,7 @@ where
             control_frames: self.control_frames,
             fuel_consumed: self.fuel_consumed,
             phase: PhantomData,
+            stack_size_map: Vec::new(),
         })
     }
 
@@ -318,6 +323,9 @@ where
                 .set_ret_area(RetArea::slot(self.context.frame.results_base_slot.unwrap()));
         }
 
+        // debugのためにrsp+100番地に0xdeadbeafを埋め込む
+        self.masm.set_magic_number()?;
+
         while !body.eof() {
             let offset = body.original_position();
             body.visit_operator(&mut ValidateThenVisit(
@@ -325,6 +333,8 @@ where
                 self,
                 offset,
             ))??;
+
+            self.stack_size_map.push((offset as u32, self.context.stack.get_real_stack_size()));
         }
         validator.finish(body.original_position())?;
         return Ok(());
@@ -910,7 +920,7 @@ where
             this.masm.wasm_load(src, writable!(dst), kind)?;
             this.context
                 .stack
-                .push(TypedReg::new(target_type, dst).into());
+                .push_with_tag(this.masm, TypedReg::new(target_type, dst).into());
             this.context.free_reg(addr);
             Ok(())
         };
@@ -1094,7 +1104,7 @@ where
             ShiftKind::ShrU,
             heap_data.index_type().try_into()?,
         )?;
-        self.context.stack.push(dst.into());
+        self.context.stack.push_with_tag(self.masm, dst.into());
         Ok(())
     }
 

@@ -277,7 +277,6 @@ cranelift-control = { path = "cranelift/control", version = "0.118.0" }
 cranelift = { path = "cranelift/umbrella", version = "0.118.0" }
 
 winch-codegen = { path = "winch/codegen", version = "=31.0.0" }
-
 wasi-preview1-component-adapter = { path = "crates/wasi-preview1-component-adapter" }
 byte-array-literals = { path = "crates/wasi-preview1-component-adapter/byte-array-literals" }
 

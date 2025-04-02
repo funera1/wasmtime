@@ -528,6 +528,11 @@ wasmtime_config_host_memory_creator_set(wasm_config_t *,
                                         wasmtime_memory_creator_t *);
 
 /**
+ * \brief Init env_logger
+ */
+WASM_API_EXTERN void wasmtime_config_init_logger();
+
+/**
  * \brief Configures whether copy-on-write memory-mapped data is used to
  * initialize a linear memory.
  *

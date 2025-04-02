@@ -132,10 +132,13 @@ impl wasmtime_environ::Compiler for Compiler {
             self.emit_unwind_info(&mut func)?;
         }
 
+        let stack_size_map = func.metadata().stack_size_map.clone();
+
         Ok((
             WasmFunctionInfo {
                 start_srcloc: func.metadata().address_map.start_srcloc,
                 stack_maps: Box::new([]),
+                stack_size_map: stack_size_map,
             },
             Box::new(func),
         ))

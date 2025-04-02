@@ -187,6 +187,13 @@ impl CompiledModule {
         )
     }
 
+    /// Returns the stask size map information
+    pub fn stack_size_maps(&self) -> impl Iterator<Item = &[(u32, u32)]> {
+        self.funcs
+            .values()
+            .map(|f| &f.wasm_func_info.stack_size_map[..])
+    }
+
     /// Lookups a defined function by a program counter value.
     ///
     /// Returns the defined function index and the relative address of

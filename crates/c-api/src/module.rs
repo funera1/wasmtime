@@ -132,6 +132,20 @@ pub struct wasmtime_module_t {
 
 wasmtime_c_api_macros::declare_own!(wasmtime_module_t);
 
+#[repr(C)]
+pub struct wasmtime_addrmap_entry_t {
+    wasm_offset: u32,
+    code_offset: u32,
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_addrmap_entry_t);
+
+#[repr(C)]
+pub struct wasmtime_stacksizemap_entry_t {
+    wasm_offset: u32,
+    stack_size: u32,
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_stacksizemap_entry_t);
+
 #[unsafe(no_mangle)]
 #[cfg(any(feature = "cranelift", feature = "winch"))]
 pub unsafe extern "C" fn wasmtime_module_new(
@@ -151,6 +165,65 @@ pub unsafe extern "C" fn wasmtime_module_new(
 #[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_module_clone(module: &wasmtime_module_t) -> Box<wasmtime_module_t> {
     Box::new(module.clone())
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn wasmtime_module_address_map(
+    module: &wasmtime_module_t, 
+    ptr: *mut *const wasmtime_addrmap_entry_t, 
+    len: *mut usize, 
+    base_addr: *mut usize
+) {
+    let data: Vec<(usize, Option<u32>)> = module.module.address_map()
+        .map(|iter| iter.collect())
+        .expect("Failed to get wasmtime_module_address");
+
+    let addrmap: Vec<wasmtime_addrmap_entry_t> = data.into_iter()
+        .map(|(code_offset, wasm_offset)| wasmtime_addrmap_entry_t {
+            code_offset: code_offset as u32, // usizeをu32に変換
+            wasm_offset: wasm_offset.unwrap_or(0), // Option<u32>のNoneは0に変換
+        })
+        .collect();
+
+    let raw_ptr = addrmap.as_ptr();
+    let size = addrmap.len();
+    std::mem::forget(addrmap); 
+    
+    // codeのベースアドレス
+    let code_base_addr = module.module.text().as_ptr() as usize;
+
+    unsafe {
+        *ptr = raw_ptr;
+        *len = size;
+        *base_addr = code_base_addr;
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn wasmtime_module_stack_size_maps(
+    module: &wasmtime_module_t, 
+    ptr: *mut *const wasmtime_stacksizemap_entry_t, 
+    lengths: *mut usize
+) {
+    let data: Vec<(u32, u32)> = module.module.stack_size_maps()
+        .flat_map(|s| s.to_vec())
+        .collect();
+    
+    let ssmap: Vec<wasmtime_stacksizemap_entry_t> = data.into_iter()
+        .map(|(wasm_offset, stack_size)| wasmtime_stacksizemap_entry_t {
+            wasm_offset: wasm_offset,
+            stack_size: stack_size,
+        })
+        .collect();
+    
+    let raw_ptr = ssmap.as_ptr();
+    let len = ssmap.len();
+    std::mem::forget(ssmap);
+
+    unsafe {
+        *ptr = raw_ptr;
+        *lengths = len;
+    }
 }
 
 #[unsafe(no_mangle)]

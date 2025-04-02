@@ -1018,6 +1018,11 @@ impl Module {
             .map(|(offset, file_pos)| (offset as usize, file_pos.file_offset())),
         )
     }
+    
+    /// Get the stack size maps
+    pub fn stack_size_maps(&self) -> impl Iterator<Item = &[(u32, u32)]> {
+        self.inner.module.stack_size_maps()
+    }
 
     /// Get this module's code object's `.text` section, containing its compiled
     /// executable code.

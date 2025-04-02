@@ -5,6 +5,7 @@ use super::{
     regs::{self, rbp, rsp},
 };
 use anyhow::{anyhow, bail, Result};
+use log::info;
 
 use crate::masm::{
     DivKind, ExtAddKind, ExtMulKind, Extend, ExtendKind, ExtractLaneKind, FloatCmpKind,
@@ -150,6 +151,28 @@ impl Masm for MacroAssembler {
                 offset_downward_to_clobbers: 0,
             })
         }
+        Ok(())
+    }
+    
+    fn set_magic_number(&mut self) -> Result<()> {
+        // TODO: context.frame.local_size分を使っちゃだめなので、その分を開けて確保＆使用する
+        info!("Embedded magic number (0xdeadbeaf) to [rbp-4]");
+        // debugのため、magic numberを挿入する
+        //
+        let sp_offset = SPOffset::from_u32(4);
+        self.asm
+            .mov_im(0xdeadbeafu32 as i32, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+
+        Ok(())
+    }
+
+    // val_addrはReg.hw_enc()もしくはmem.offsetを表している。metadataはスタック位置を表している
+    fn store_metadata(&mut self, val_addr: u32, metadata: i32) -> Result<()> {
+        // NOTE: offsのベースアドレスが小さいと通常スタックと衝突して壊れる可能性あり
+        let sp_offset = SPOffset::from_u32(4*(val_addr+1));
+        self.asm
+            .mov_im(metadata, &self.address_from_sp(sp_offset)?, OperandSize::S32, TRUSTED_FLAGS);
+
         Ok(())
     }
 
