@@ -839,13 +839,14 @@ impl Masm for MacroAssembler {
 
     fn state_restore(
         &mut self,
-        kind: IntCmpKind,
-        lhs: Reg,
         taken: MachLabel,
     ) -> Result<()> {
+
         // restore modeか確認するコードを挿入
-        self.cmp(lhs, RegImm::Imm(I::i32(1)), OperandSize::S32);
-        self.asm.jmp_if(kind, taken);
+        let rax = regs::rax();
+        self.mov(writable!(rax), RegImm::Imm(I::i32(1)), OperandSize::S32)?;
+        self.cmp(rax, RegImm::Imm(I::i32(1)), OperandSize::S32);
+        self.asm.jmp_if(IntCmpKind::Ne, taken);
 
         self.unreachable();
         

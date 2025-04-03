@@ -1,5 +1,5 @@
 use crate::abi::{self, align_to, scratch, LocalSlot};
-use crate::codegen::{CodeGenContext, Emission, FuncEnv};
+use crate::codegen::{CodeGenContext, Emission, FuncEnv, Prologue};
 use crate::isa::{
     reg::{writable, Reg, WritableReg},
     CallingConvention,
@@ -1135,7 +1135,7 @@ pub(crate) trait MacroAssembler {
     fn frame_restore(&mut self) -> Result<()>;
 
     /// Generate the state restore sequence for Wasm C/R.
-    fn state_restore(&mut self, kind: IntCmpKind, lhs: Reg, taken: MachLabel) -> Result<()>;
+    fn state_restore(&mut self, taken: MachLabel) -> Result<()>;
 
     /// Emit a stack check.
     fn check_stack(&mut self, vmctx: Reg) -> Result<()>;

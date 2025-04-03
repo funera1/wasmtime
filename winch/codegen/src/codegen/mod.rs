@@ -174,7 +174,9 @@ where
         }
         
         // restore code 挿入
-        self.masm.state_restore(IntCmpKind::Ne, lhs, taken);
+        let taken = self.masm.get_label()?;
+        self.masm.state_restore(taken);
+        self.masm.bind(taken);
         // masm.branch(
         //     IntCmpKind::Eq,
         //     top.reg.into(),
