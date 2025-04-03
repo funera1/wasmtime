@@ -7,9 +7,7 @@ use std::sync::Mutex;
 use wasmparser::FuncValidatorAllocations;
 use wasmtime_cranelift::{CompiledFunction, ModuleTextBuilder};
 use wasmtime_environ::{
-    AddressMapSection, BuiltinFunctionIndex, CompileError, DefinedFuncIndex, FunctionBodyData,
-    FunctionLoc, ModuleTranslation, ModuleTypesBuilder, PrimaryMap, RelocationTarget,
-    StaticModuleIndex, TrapEncodingBuilder, Tunables, VMOffsets, WasmFunctionInfo,
+    AddressMapSection, BuiltinFunctionIndex, CompileError, DefinedFuncIndex, FunctionBodyData, FunctionLoc, ModuleTranslation, ModuleTypesBuilder, PrimaryMap, RelocationTarget, RestoreInfo, StaticModuleIndex, TrapEncodingBuilder, Tunables, VMOffsets, WasmFunctionInfo
 };
 use winch_codegen::{BuiltinFunctions, CallingConvention, TargetIsa};
 
@@ -28,6 +26,7 @@ pub(crate) struct Compiler {
     trampolines: Box<dyn wasmtime_environ::Compiler>,
     contexts: Mutex<Vec<CompilationContext>>,
     tunables: Tunables,
+    restore_info: Option<RestoreInfo>,
 }
 
 impl Compiler {
@@ -35,12 +34,14 @@ impl Compiler {
         isa: Box<dyn TargetIsa>,
         trampolines: Box<dyn wasmtime_environ::Compiler>,
         tunables: Tunables,
+        restore_info: Option<RestoreInfo>,
     ) -> Self {
         Self {
             isa,
             trampolines,
             contexts: Mutex::new(Vec::new()),
             tunables,
+            restore_info,
         }
     }
 
@@ -116,6 +117,7 @@ impl wasmtime_environ::Compiler for Compiler {
                 &mut context.builtins,
                 &mut validator,
                 &self.tunables,
+                &self.restore_info,
             )
             .map_err(|e| CompileError::Codegen(format!("{e:?}")));
         self.save_context(context, validator.into_allocations());

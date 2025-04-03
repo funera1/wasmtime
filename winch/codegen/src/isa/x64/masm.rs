@@ -837,10 +837,9 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn state_restore(
-        &mut self,
-        taken: MachLabel,
-    ) -> Result<()> {
+    fn state_restore(&mut self) -> Result<()> {
+        
+        let taken = self.get_label()?;
 
         // restore modeか確認するコードを挿入
         let rax = regs::rax();
@@ -848,13 +847,12 @@ impl Masm for MacroAssembler {
         self.cmp(rax, RegImm::Imm(I::i32(1)), OperandSize::S32);
         self.asm.jmp_if(IntCmpKind::Ne, taken);
 
-        self.unreachable();
+        // restore処理
+        // self.unreachable();
         
-        // restore modeなら、state(pc, stack)を復元
         
-        // debug_assert_eq!(self.sp_offset, 0);
-        // self.asm.pop_r(writable!(rbp()));
-        // self.asm.ret();
+
+        self.bind(taken);
         Ok(())
     }
 

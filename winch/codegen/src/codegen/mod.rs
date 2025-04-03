@@ -21,7 +21,7 @@ use wasmparser::{
 };
 use wasmtime_cranelift::{TRAP_BAD_SIGNATURE, TRAP_HEAP_MISALIGNED, TRAP_TABLE_OUT_OF_BOUNDS};
 use wasmtime_environ::{
-    GlobalIndex, MemoryIndex, PtrSize, TableIndex, Tunables, TypeIndex, WasmHeapType, WasmValType,
+    GlobalIndex, MemoryIndex, PtrSize, TableIndex, Tunables, TypeIndex, WasmHeapType, WasmValType, RestoreInfo,
     FUNCREF_MASK,
 };
 
@@ -128,7 +128,7 @@ where
     }
 
     /// Code generation prologue.
-    pub fn emit_prologue(mut self) -> Result<CodeGen<'a, 'translation, 'data, M, Emission>> {
+    pub fn emit_prologue(mut self, restore_info: &Option<RestoreInfo>) -> Result<CodeGen<'a, 'translation, 'data, M, Emission>> {
         let vmctx = self
             .sig
             .params()
@@ -174,17 +174,8 @@ where
         }
         
         // restore code 挿入
-        let taken = self.masm.get_label()?;
-        self.masm.state_restore(taken);
-        self.masm.bind(taken);
-        // masm.branch(
-        //     IntCmpKind::Eq,
-        //     top.reg.into(),
-        //     top.reg.into(),
-        //     cont,
-        //     OperandSize::S32,
-        // )?;
-        //
+        self.masm.state_restore();
+
         self.masm.end_source_loc()?;
 
         Ok(CodeGen {

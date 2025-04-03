@@ -8,7 +8,7 @@ use std::path::Path;
 use wasmparser::WasmFeatures;
 #[cfg(feature = "cache")]
 use wasmtime_cache::CacheConfig;
-use wasmtime_environ::{ConfigTunables, TripleExt, Tunables};
+use wasmtime_environ::{ConfigTunables, TripleExt, Tunables, RestoreInfo};
 
 #[cfg(feature = "runtime")]
 use crate::memory::MemoryCreator;
@@ -126,6 +126,7 @@ pub struct Config {
     collector: Collector,
     profiling_strategy: ProfilingStrategy,
     tunables: ConfigTunables,
+    restore_info: Option<RestoreInfo>,
 
     #[cfg(feature = "cache")]
     pub(crate) cache_config: CacheConfig,
@@ -225,6 +226,7 @@ impl Config {
     pub fn new() -> Self {
         let mut ret = Self {
             tunables: ConfigTunables::default(),
+            restore_info: None,
             #[cfg(any(feature = "cranelift", feature = "winch"))]
             compiler_config: CompilerConfig::default(),
             target: None,
@@ -2438,6 +2440,11 @@ impl Config {
 
         compiler.set_tunables(tunables.clone())?;
         compiler.wmemcheck(self.compiler_config.wmemcheck);
+        
+        // restore_infoを渡す
+        if let Some(ref restore_info) = self.restore_info {
+            compiler.set_restore_info(restore_info.clone())?;
+        }
 
         Ok((self, compiler.build()?))
     }

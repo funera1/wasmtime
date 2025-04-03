@@ -13,7 +13,7 @@ use std::fmt;
 use std::path;
 use std::sync::Arc;
 use target_lexicon::Triple;
-use wasmtime_environ::{CacheStore, CompilerBuilder, Setting, Tunables};
+use wasmtime_environ::{CacheStore, CompilerBuilder, RestoreInfo, Setting, Tunables};
 
 struct Builder {
     tunables: Option<Tunables>,
@@ -84,6 +84,10 @@ impl CompilerBuilder for Builder {
     fn set_tunables(&mut self, tunables: Tunables) -> Result<()> {
         self.tunables = Some(tunables);
         Ok(())
+    }
+    
+    fn set_restore_info(&mut self, _: RestoreInfo) -> Result<()> {
+        unimplemented!("Not supported cranelift")
     }
 
     fn build(&self) -> Result<Box<dyn wasmtime_environ::Compiler>> {

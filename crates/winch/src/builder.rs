@@ -3,7 +3,7 @@ use anyhow::{bail, Result};
 use std::sync::Arc;
 use target_lexicon::Triple;
 use wasmtime_cranelift::isa_builder::IsaBuilder;
-use wasmtime_environ::{CompilerBuilder, Setting, Tunables};
+use wasmtime_environ::{CompilerBuilder, Setting, Tunables, RestoreInfo};
 use winch_codegen::{isa, TargetIsa};
 
 /// Compiler builder.
@@ -11,6 +11,7 @@ struct Builder {
     inner: IsaBuilder<Result<Box<dyn TargetIsa>>>,
     cranelift: Box<dyn CompilerBuilder>,
     tunables: Option<Tunables>,
+    restore_info: Option<RestoreInfo>,
 }
 
 pub fn builder(triple: Option<Triple>) -> Result<Box<dyn CompilerBuilder>> {
@@ -22,6 +23,7 @@ pub fn builder(triple: Option<Triple>) -> Result<Box<dyn CompilerBuilder>> {
         inner,
         cranelift,
         tunables: None,
+        restore_info: None,
     }))
 }
 
@@ -74,6 +76,11 @@ impl CompilerBuilder for Builder {
         Ok(())
     }
 
+    fn set_restore_info(&mut self, info: RestoreInfo) -> Result<()> {
+        self.restore_info = Some(info.clone());
+        Ok(())
+    }
+
     fn build(&self) -> Result<Box<dyn wasmtime_environ::Compiler>> {
         let isa = self.inner.build()?;
         let cranelift = self.cranelift.build()?;
@@ -82,7 +89,10 @@ impl CompilerBuilder for Builder {
             .as_ref()
             .expect("set_tunables not called")
             .clone();
-        Ok(Box::new(Compiler::new(isa, cranelift, tunables)))
+        let restore_info = self
+            .restore_info
+            .clone();
+        Ok(Box::new(Compiler::new(isa, cranelift, tunables, restore_info)))
     }
 
     fn enable_incremental_compilation(

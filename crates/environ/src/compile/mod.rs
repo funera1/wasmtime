@@ -142,6 +142,9 @@ pub trait CompilerBuilder: Send + Sync + fmt::Debug {
     /// Set the tunables for this compiler.
     fn set_tunables(&mut self, tunables: Tunables) -> Result<()>;
 
+    /// Set the tunables for this compiler.
+    fn set_restore_info(&mut self, restore_info: RestoreInfo) -> Result<()>;
+
     /// Builds a new [`Compiler`] object from this configuration.
     fn build(&self) -> Result<Box<dyn Compiler>>;
 
@@ -387,4 +390,13 @@ pub trait Compiler: Send + Sync {
         // By default, an ISA cannot create a System V CIE.
         None
     }
+}
+
+/// restore info
+#[derive(Clone)]
+pub struct RestoreInfo {
+    // hoge
+    is_restore: bool,
+    // stack
+    stack: Vec<u32>,
 }

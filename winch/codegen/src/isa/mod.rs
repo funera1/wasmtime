@@ -12,7 +12,7 @@ use std::{
 use target_lexicon::{Architecture, Triple};
 use wasmparser::{FuncValidator, FunctionBody, ValidatorResources};
 use wasmtime_cranelift::CompiledFunction;
-use wasmtime_environ::{ModuleTranslation, ModuleTypesBuilder, Tunables, WasmFuncType};
+use wasmtime_environ::{ModuleTranslation, ModuleTypesBuilder, Tunables, WasmFuncType, RestoreInfo};
 
 #[cfg(feature = "x64")]
 pub(crate) mod x64;
@@ -175,6 +175,7 @@ pub trait TargetIsa: Send + Sync {
         builtins: &mut BuiltinFunctions,
         validator: &mut FuncValidator<ValidatorResources>,
         tunables: &Tunables,
+        restore_info: &Option<RestoreInfo>,
     ) -> Result<CompiledFunction>;
 
     /// Get the default calling convention of the underlying target triple.
