@@ -19,6 +19,13 @@ pub struct wasm_config_t {
 
 wasmtime_c_api_macros::declare_own!(wasm_config_t);
 
+#[repr(C)]
+pub struct wasmtime_restore_info_t {
+    is_restore: bool,
+    wasm_pc: u32
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_restore_info_t);
+
 #[repr(u8)]
 #[derive(Clone)]
 pub enum wasmtime_strategy_t {
@@ -455,6 +462,6 @@ pub extern "C" fn wasmtime_config_init_logger() {
 
 
 #[unsafe(no_mangle)]
-pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, is_restore: bool) {
-    c.config.set_restore_info(is_restore, Vec::new());
+pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, info: &wasmtime_restore_info_t) {
+    c.config.set_restore_info(info.is_restore, Vec::new());
 }
