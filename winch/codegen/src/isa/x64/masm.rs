@@ -44,7 +44,7 @@ use cranelift_codegen::{
     settings, Final, MachBufferFinalized, MachLabel,
 };
 use wasmtime_cranelift::TRAP_UNREACHABLE;
-use wasmtime_environ::{PtrSize, WasmValType, RestoreInfo};
+use wasmtime_environ::{PtrSize, WasmValType};
 
 // Taken from `cranelift/codegen/src/isa/x64/lower/isle.rs`
 // Since x64 doesn't have 8x16 shifts and we must use a 16x8 shift instead, we
@@ -836,26 +836,26 @@ impl Masm for MacroAssembler {
         self.asm.ret();
         Ok(())
     }
+    
+    fn jump_restore(&mut self, label: MachLabel, is_restore: bool) -> Result<()> {
+        let rax = regs::rax();
+        // restore modeか確認するコードを挿入
 
-    fn state_restore(&mut self, restore_info: &Option<RestoreInfo>) -> Result<()> {
-        if let Some(info) = restore_info {
-            println!("is restore mode: {}", info.is_restore);
-            
-            let taken = self.get_label()?;
+        // TODO: この実装だと--restoreオプションのときに、この関数は毎回restoreコードを呼びに行ってしまう。
+        // restoreコードは各フレームで1回だけ呼ばれるような実装にする
+        self.mov(writable!(rax), RegImm::Imm(I::i32(is_restore as i32)), OperandSize::S32)?;
+        self.cmp(rax, RegImm::Imm(I::i32(1)), OperandSize::S32)?;
+        self.asm.jmp_if(IntCmpKind::Eq, label);
+        
+        Ok(())
+    }
 
-            // restore modeか確認するコードを挿入
-            let rax = regs::rax();
-            self.mov(writable!(rax), RegImm::Imm(I::i32(1)), OperandSize::S32)?;
-            self.cmp(rax, RegImm::Imm(I::i32(1)), OperandSize::S32)?;
-            self.asm.jmp_if(IntCmpKind::Ne, taken);
+    fn state_restore(&mut self, target: MachLabel) -> Result<()> {
+        println!("state_restore");
+        
+        // restore処理
+        // self.jmp(target);
 
-            // restore処理
-            // self.unreachable();
-            
-            
-
-            self.bind(taken)?;
-        }
         Ok(())
     }
 

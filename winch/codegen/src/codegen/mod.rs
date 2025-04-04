@@ -12,6 +12,7 @@ use anyhow::{anyhow, bail, ensure, Result};
 use cranelift_codegen::{
     binemit::CodeOffset,
     ir::{RelSourceLoc, SourceLoc},
+    MachLabel,
 };
 use smallvec::SmallVec;
 use std::marker::PhantomData;
@@ -128,7 +129,7 @@ where
     }
 
     /// Code generation prologue.
-    pub fn emit_prologue(mut self, restore_info: &Option<RestoreInfo>) -> Result<CodeGen<'a, 'translation, 'data, M, Emission>> {
+    pub fn emit_prologue(mut self) -> Result<CodeGen<'a, 'translation, 'data, M, Emission>> {
         let vmctx = self
             .sig
             .params()
@@ -173,9 +174,6 @@ where
             }
         }
         
-        // restore code 挿入
-        self.masm.state_restore(restore_info)?;
-
         self.masm.end_source_loc()?;
 
         Ok(CodeGen {
@@ -232,9 +230,25 @@ where
         &mut self,
         body: &mut BinaryReader<'a>,
         validator: &mut FuncValidator<ValidatorResources>,
+        restore_info: &RestoreInfo,
     ) -> Result<()> {
-        self.emit_body(body, validator)
+        self.emit_body(body, validator, restore_info)
             .and_then(|_| self.emit_end())?;
+
+        Ok(())
+    }
+    
+    pub fn jump_restore_code(&mut self, restore_info: &RestoreInfo) -> Result<MachLabel> {
+        let label = self.masm.get_label()?;
+        self.masm.jump_restore(label, restore_info.is_restore)?;
+
+        Ok(label)
+    }
+
+    pub fn emit_restore_code(&mut self, restore_code_label: MachLabel, restore_info: &RestoreInfo, checkpoint_label: &MachLabel) -> Result<()> {
+        self.masm.bind(restore_code_label)?;
+        
+        self.masm.jmp(*checkpoint_label)?;
 
         Ok(())
     }
@@ -303,7 +317,11 @@ where
         &mut self,
         body: &mut BinaryReader<'a>,
         validator: &mut FuncValidator<ValidatorResources>,
+        restore_info: &RestoreInfo,
     ) -> Result<()> {
+        // jump restore code
+        let restore_code_label = self.jump_restore_code(restore_info)?;
+
         self.maybe_emit_fuel_check()?;
 
         self.maybe_emit_epoch_check()?;
@@ -328,18 +346,32 @@ where
 
         // debugのためにrsp+100番地に0xdeadbeafを埋め込む
         self.masm.set_magic_number()?;
+        
+        // let mut checkpoint_label: Vec<MachLabel> = vec![];
+        let mut checkpoint_label = MachLabel::from_u32(0);
 
         while !body.eof() {
             let offset = body.original_position();
+
+            // wasm_pcとoffsetが等しい場合、labelを取得
+            if restore_info.is_restore && restore_info.wasm_pc == offset as u32 {
+                checkpoint_label = self.masm.get_label()?;
+            }
+
             body.visit_operator(&mut ValidateThenVisit(
                 validator.simd_visitor(offset),
                 self,
                 offset,
             ))??;
-
+            
             self.stack_size_map.push((offset as u32, self.context.stack.get_real_stack_size()));
         }
         validator.finish(body.original_position())?;
+        
+        // emit restore code
+        // assert(checkpoint_label)
+        self.emit_restore_code(restore_code_label, restore_info, &checkpoint_label)?;
+        
         return Ok(());
 
         struct ValidateThenVisit<'a, T, U>(T, &'a mut U, usize);

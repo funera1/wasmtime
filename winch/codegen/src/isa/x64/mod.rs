@@ -137,9 +137,19 @@ impl TargetIsa for X64 {
         let codegen_context = CodeGenContext::new(regalloc, stack, frame, &vmoffsets);
         let codegen = CodeGen::new(tunables, &mut masm, codegen_context, env, abi_sig);
 
-        let mut body_codegen = codegen.emit_prologue(restore_info)?;
-
-        body_codegen.emit(&mut body, validator)?;
+        let mut body_codegen = codegen.emit_prologue()?;
+        
+        // TODO: RestoreInfoの扱いをうまく実装する. 
+        match restore_info {
+            Some(info) => {
+                body_codegen.emit(&mut body, validator, info)?;
+            }
+            None => {
+                let def = RestoreInfo::default();
+                body_codegen.emit(&mut body, validator, &def)?;
+            }
+        }
+        
         let base = body_codegen.source_location.base;
         let names = body_codegen.env.take_name_map();
         let stack_size_map = body_codegen.stack_size_map;
