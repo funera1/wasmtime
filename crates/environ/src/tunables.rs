@@ -3,7 +3,6 @@ use anyhow::{anyhow, bail, Result};
 use core::fmt;
 use serde_derive::{Deserialize, Serialize};
 use target_lexicon::{PointerWidth, Triple};
-use std::vec::Vec;
 
 macro_rules! define_tunables {
     (

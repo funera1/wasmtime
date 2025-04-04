@@ -453,3 +453,8 @@ pub extern "C" fn wasmtime_config_init_logger() {
     env_logger::init();
 }
 
+
+#[unsafe(no_mangle)]
+pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, is_restore: bool) {
+    c.config.set_restore_info(is_restore, Vec::new());
+}

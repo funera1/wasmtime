@@ -395,8 +395,18 @@ pub trait Compiler: Send + Sync {
 /// restore info
 #[derive(Clone)]
 pub struct RestoreInfo {
-    // hoge
-    is_restore: bool,
-    // stack
-    stack: Vec<u32>,
+    /// hoge
+    pub is_restore: bool,
+    /// stack
+    pub stack: Vec<u32>,
+}
+
+impl RestoreInfo {
+    /// constructor
+    pub fn new(is_restore: bool, stack: Vec<u32>) -> Self {
+        Self {
+            is_restore,
+            stack,
+        }
+    }
 }

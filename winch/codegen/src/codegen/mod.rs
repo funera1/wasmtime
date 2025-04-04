@@ -174,7 +174,7 @@ where
         }
         
         // restore code 挿入
-        self.masm.state_restore();
+        self.masm.state_restore(restore_info)?;
 
         self.masm.end_source_loc()?;
 

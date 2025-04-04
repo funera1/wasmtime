@@ -2572,6 +2572,13 @@ impl Config {
         self.tunables.signals_based_traps = Some(enable);
         self
     }
+    
+    /// set restore info
+    pub fn set_restore_info(&mut self, is_restore: bool, stack: Vec<u32>) -> &mut Self {
+        let info = RestoreInfo::new(is_restore, stack);
+        self.restore_info = Some(info);
+        self
+    }
 }
 
 impl Default for Config {

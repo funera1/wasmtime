@@ -44,7 +44,7 @@ use cranelift_codegen::{
     settings, Final, MachBufferFinalized, MachLabel,
 };
 use wasmtime_cranelift::TRAP_UNREACHABLE;
-use wasmtime_environ::{PtrSize, WasmValType};
+use wasmtime_environ::{PtrSize, WasmValType, RestoreInfo};
 
 // Taken from `cranelift/codegen/src/isa/x64/lower/isle.rs`
 // Since x64 doesn't have 8x16 shifts and we must use a 16x8 shift instead, we
@@ -837,22 +837,25 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn state_restore(&mut self) -> Result<()> {
-        
-        let taken = self.get_label()?;
+    fn state_restore(&mut self, restore_info: &Option<RestoreInfo>) -> Result<()> {
+        if let Some(info) = restore_info {
+            println!("is restore mode: {}", info.is_restore);
+            
+            let taken = self.get_label()?;
 
-        // restore modeか確認するコードを挿入
-        let rax = regs::rax();
-        self.mov(writable!(rax), RegImm::Imm(I::i32(1)), OperandSize::S32)?;
-        self.cmp(rax, RegImm::Imm(I::i32(1)), OperandSize::S32);
-        self.asm.jmp_if(IntCmpKind::Ne, taken);
+            // restore modeか確認するコードを挿入
+            let rax = regs::rax();
+            self.mov(writable!(rax), RegImm::Imm(I::i32(1)), OperandSize::S32)?;
+            self.cmp(rax, RegImm::Imm(I::i32(1)), OperandSize::S32)?;
+            self.asm.jmp_if(IntCmpKind::Ne, taken);
 
-        // restore処理
-        // self.unreachable();
-        
-        
+            // restore処理
+            // self.unreachable();
+            
+            
 
-        self.bind(taken);
+            self.bind(taken)?;
+        }
         Ok(())
     }
 

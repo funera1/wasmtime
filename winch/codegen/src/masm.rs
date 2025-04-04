@@ -1,5 +1,5 @@
 use crate::abi::{self, align_to, scratch, LocalSlot};
-use crate::codegen::{CodeGenContext, Emission, FuncEnv, Prologue};
+use crate::codegen::{CodeGenContext, Emission, FuncEnv};
 use crate::isa::{
     reg::{writable, Reg, WritableReg},
     CallingConvention,
@@ -11,7 +11,7 @@ use cranelift_codegen::{
     Final, MachBufferFinalized, MachLabel,
 };
 use std::{fmt::Debug, ops::Range};
-use wasmtime_environ::PtrSize;
+use wasmtime_environ::{PtrSize, RestoreInfo};
 
 pub(crate) use cranelift_codegen::ir::TrapCode;
 
@@ -1135,7 +1135,7 @@ pub(crate) trait MacroAssembler {
     fn frame_restore(&mut self) -> Result<()>;
 
     /// Generate the state restore sequence for Wasm C/R.
-    fn state_restore(&mut self) -> Result<()>;
+    fn state_restore(&mut self, restore_info: &Option<RestoreInfo>) -> Result<()>;
 
     /// Emit a stack check.
     fn check_stack(&mut self, vmctx: Reg) -> Result<()>;
