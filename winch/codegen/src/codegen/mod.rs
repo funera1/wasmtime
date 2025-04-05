@@ -245,10 +245,10 @@ where
         Ok(label)
     }
 
-    pub fn emit_restore_code(&mut self, restore_code_label: MachLabel, restore_info: &RestoreInfo, checkpoint_label: &MachLabel) -> Result<()> {
+    pub fn emit_restore_code(&mut self, restore_code_label: MachLabel, restore_info: &RestoreInfo, checkpoint_label: MachLabel) -> Result<()> {
         self.masm.bind(restore_code_label)?;
         
-        self.masm.jmp(*checkpoint_label)?;
+        self.masm.jmp(checkpoint_label)?;
 
         Ok(())
     }
@@ -346,16 +346,20 @@ where
 
         // debugのためにrsp+100番地に0xdeadbeafを埋め込む
         self.masm.set_magic_number()?;
-        
-        // let mut checkpoint_label: Vec<MachLabel> = vec![];
-        let mut checkpoint_label = MachLabel::from_u32(0);
+
+        let checkpoint_label = self.masm.get_label()?;
+        // restore modeじゃない場合、wasmコードの最初にジャンプする
+        if !restore_info.is_restore {
+            self.masm.bind(checkpoint_label)?;
+        }
 
         while !body.eof() {
             let offset = body.original_position();
 
-            // wasm_pcとoffsetが等しい場合、labelを取得
+            // wasm_pcとoffsetが等しい場合、labelをbind
+            // TODO: 関数呼び出し対応する場合、1関数内に複数targetへラベルを設定する必要がある
             if restore_info.is_restore && restore_info.wasm_pc == offset as u32 {
-                checkpoint_label = self.masm.get_label()?;
+                self.masm.bind(checkpoint_label)?;
             }
 
             body.visit_operator(&mut ValidateThenVisit(
@@ -369,8 +373,9 @@ where
         validator.finish(body.original_position())?;
         
         // emit restore code
-        // assert(checkpoint_label)
-        self.emit_restore_code(restore_code_label, restore_info, &checkpoint_label)?;
+        // self.emit_restore_code(restore_code_label, restore_info, checkpoint_label)?;
+        self.masm.bind(restore_code_label)?;
+        self.masm.jmp(checkpoint_label)?;
         
         return Ok(());
 
