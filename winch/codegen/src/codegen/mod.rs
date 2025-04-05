@@ -221,6 +221,22 @@ where
     }
 }
 
+struct RestoreCtx<'a> {
+    pub restore_info: &'a RestoreInfo,
+    pub restore_code_label: MachLabel,
+    pub checkpoint_label: MachLabel,
+}
+
+impl<'a> RestoreCtx<'a> {
+    pub fn new(info: &'a RestoreInfo, rc_label: MachLabel, cp_label: MachLabel) -> Self {
+        Self {
+            restore_info: info,
+            restore_code_label: rc_label,
+            checkpoint_label: cp_label,
+        }
+    }
+}
+
 impl<'a, 'translation, 'data, M> CodeGen<'a, 'translation, 'data, M, Emission>
 where
     M: MacroAssembler,
@@ -232,23 +248,30 @@ where
         validator: &mut FuncValidator<ValidatorResources>,
         restore_info: &RestoreInfo,
     ) -> Result<()> {
-        self.emit_body(body, validator, restore_info)
-            .and_then(|_| self.emit_end())?;
+        // restoreのために必要な情報を持つrestre_contextを作成
+        let mut rctx = RestoreCtx::new(restore_info, self.masm.get_label()?, self.masm.get_label()?);
+
+        self.emit_body(body, validator, &mut rctx)
+            .and_then(|_| self.emit_end())
+            .and_then(|_| self.emit_restore_code(&rctx))?;
 
         Ok(())
     }
     
-    pub fn jump_restore_code(&mut self, restore_info: &RestoreInfo) -> Result<MachLabel> {
-        let label = self.masm.get_label()?;
-        self.masm.jump_restore(label, restore_info.is_restore)?;
+    pub fn jump_restore_code(&mut self, rctx: &RestoreCtx) -> Result<()> {
+        self.masm.jump_restore(rctx.restore_code_label, rctx.restore_info.is_restore)?;
 
-        Ok(label)
+        Ok(())
     }
 
-    pub fn emit_restore_code(&mut self, restore_code_label: MachLabel, restore_info: &RestoreInfo, checkpoint_label: MachLabel) -> Result<()> {
-        self.masm.bind(restore_code_label)?;
+    pub fn emit_restore_code(&mut self, rctx: &RestoreCtx) -> Result<()> {
+        // restore codeの位置をbind
+        self.masm.bind(rctx.restore_code_label)?;
         
-        self.masm.jmp(checkpoint_label)?;
+        // TODO: restore処理
+        
+        // restore位置へジャンプ
+        self.masm.jmp(rctx.checkpoint_label)?;
 
         Ok(())
     }
@@ -317,10 +340,12 @@ where
         &mut self,
         body: &mut BinaryReader<'a>,
         validator: &mut FuncValidator<ValidatorResources>,
-        restore_info: &RestoreInfo,
+        rctx: &mut RestoreCtx,
     ) -> Result<()> {
+        let restore_info = rctx.restore_info;
+
         // jump restore code
-        let restore_code_label = self.jump_restore_code(restore_info)?;
+        self.jump_restore_code(rctx)?;
 
         self.maybe_emit_fuel_check()?;
 
@@ -344,14 +369,13 @@ where
                 .set_ret_area(RetArea::slot(self.context.frame.results_base_slot.unwrap()));
         }
 
+        // DEBUG: restore modeじゃない場合、wasmコードの最初にジャンプする
+        if !restore_info.is_restore {
+            self.masm.bind(rctx.checkpoint_label)?;
+        }
+
         // debugのためにrsp+100番地に0xdeadbeafを埋め込む
         self.masm.set_magic_number()?;
-
-        let checkpoint_label = self.masm.get_label()?;
-        // restore modeじゃない場合、wasmコードの最初にジャンプする
-        if !restore_info.is_restore {
-            self.masm.bind(checkpoint_label)?;
-        }
 
         while !body.eof() {
             let offset = body.original_position();
@@ -359,7 +383,7 @@ where
             // wasm_pcとoffsetが等しい場合、labelをbind
             // TODO: 関数呼び出し対応する場合、1関数内に複数targetへラベルを設定する必要がある
             if restore_info.is_restore && restore_info.wasm_pc == offset as u32 {
-                self.masm.bind(checkpoint_label)?;
+                self.masm.bind(rctx.checkpoint_label)?;
             }
 
             body.visit_operator(&mut ValidateThenVisit(
@@ -371,11 +395,6 @@ where
             self.stack_size_map.push((offset as u32, self.context.stack.get_real_stack_size()));
         }
         validator.finish(body.original_position())?;
-        
-        // emit restore code
-        // self.emit_restore_code(restore_code_label, restore_info, checkpoint_label)?;
-        self.masm.bind(restore_code_label)?;
-        self.masm.jmp(checkpoint_label)?;
         
         return Ok(());
 
