@@ -463,5 +463,5 @@ pub extern "C" fn wasmtime_config_init_logger() {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, info: &wasmtime_restore_info_t) {
-    c.config.set_restore_info(info.is_restore, Vec::new());
+    c.config.set_restore_info(info.is_restore, info.wasm_pc, Vec::new());
 }
