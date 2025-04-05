@@ -500,6 +500,10 @@ impl Stack {
         self.metadata[&addr]
     }
 
+    pub fn metadata(&mut self) -> &HashMap<u32, u32> {
+        &self.metadata
+    }
+
     pub fn move_metadata<M>(&mut self, masm: &mut M, old_addr: u32, new_addr: u32) 
     where
         M: MacroAssembler,

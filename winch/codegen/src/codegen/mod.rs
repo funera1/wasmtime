@@ -16,6 +16,7 @@ use cranelift_codegen::{
 };
 use smallvec::SmallVec;
 use std::marker::PhantomData;
+use std::collections::HashMap;
 use wasmparser::{
     BinaryReader, FuncValidator, MemArg, Operator, ValidatorResources, VisitOperator,
     VisitSimdOperator,
@@ -225,6 +226,7 @@ struct RestoreCtx<'a> {
     pub restore_info: &'a RestoreInfo,
     pub restore_code_label: MachLabel,
     pub checkpoint_label: MachLabel,
+    pub stack_metadata: HashMap<u32, u32>,
 }
 
 impl<'a> RestoreCtx<'a> {
@@ -233,6 +235,7 @@ impl<'a> RestoreCtx<'a> {
             restore_info: info,
             restore_code_label: rc_label,
             checkpoint_label: cp_label,
+            stack_metadata: Default::default(),
         }
     }
 }
@@ -269,6 +272,11 @@ where
         self.masm.bind(rctx.restore_code_label)?;
         
         // TODO: restore処理
+        let stack = &rctx.restore_info.stack;
+        let metadata = &rctx.stack_metadata;
+        println!("{:?}", stack);
+        println!("{:?}", metadata);
+        // stack pos -> reg_id/mem_offsのmapがほしい
         
         // restore位置へジャンプ
         self.masm.jmp(rctx.checkpoint_label)?;
@@ -384,6 +392,7 @@ where
             // TODO: 関数呼び出し対応する場合、1関数内に複数targetへラベルを設定する必要がある
             if restore_info.is_restore && restore_info.wasm_pc == offset as u32 {
                 self.masm.bind(rctx.checkpoint_label)?;
+                rctx.stack_metadata = self.context.stack.metadata().clone();
             }
 
             body.visit_operator(&mut ValidateThenVisit(

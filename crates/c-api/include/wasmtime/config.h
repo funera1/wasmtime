@@ -532,9 +532,16 @@ wasmtime_config_host_memory_creator_set(wasm_config_t *,
  */
 WASM_API_EXTERN void wasmtime_config_init_logger();
 
+typedef struct wasmtime_stack_t {
+  size_t len;
+  uint32_t* values;
+  uint32_t* metadata;
+} wasmtime_stack;
+
 typedef struct wasmtime_restore_info_t {
   bool is_restore;  
   uint32_t wasm_pc;
+  wasmtime_stack_t wasm_stack;
 } wasmtime_restore_info;
 /**
  * \brief Set restore info

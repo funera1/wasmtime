@@ -20,9 +20,18 @@ pub struct wasm_config_t {
 wasmtime_c_api_macros::declare_own!(wasm_config_t);
 
 #[repr(C)]
+pub struct wasmtime_stack_t {
+    len: usize,
+    values: *const u32,
+    metadata: *const u32,
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_stack_t);
+
+#[repr(C)]
 pub struct wasmtime_restore_info_t {
     is_restore: bool,
-    wasm_pc: u32
+    wasm_pc: u32,
+    wasm_stack: wasmtime_stack_t,
 }
 wasmtime_c_api_macros::declare_own!(wasmtime_restore_info_t);
 
@@ -463,5 +472,11 @@ pub extern "C" fn wasmtime_config_init_logger() {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, info: &wasmtime_restore_info_t) {
-    c.config.set_restore_info(info.is_restore, info.wasm_pc, Vec::new());
+    let stack = unsafe {
+        let wasm_stack = &info.wasm_stack;
+        assert!(!wasm_stack.values.is_null());
+
+        std::slice::from_raw_parts(wasm_stack.values, wasm_stack.len).to_vec()
+    };
+    c.config.set_restore_info(info.is_restore, info.wasm_pc, stack);
 }
