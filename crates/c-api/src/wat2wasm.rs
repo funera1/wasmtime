@@ -16,48 +16,45 @@ pub unsafe extern "C" fn wasmtime_wat2wasm(
     })
 }
 
+
+use crate::wasm_config_t;
 use wasmtime_explorer;
+use std::ffi::CStr;
+use std::fs;
+use std::path::Path;
 
 #[unsafe(no_mangle)]
-pub extern "C" fn wasmtime_explore(c: &mut wasm_config_t) {
-    self.common.init_logging()?;
+pub extern "C" fn wasmtime_explore(c: &wasm_config_t, wasm_path: *const std::os::raw::c_char) {
 
-    let mut config = self.common.config(None)?;
-
-    let bytes =
-        Cow::Owned(std::fs::read(&self.module).with_context(|| {
-            format!("failed to read Wasm module: {}", self.module.display())
-        })?);
-    #[cfg(feature = "wat")]
-    let bytes = wat::parse_bytes(&bytes).map_err(|mut e| {
-        e.set_path(&self.module);
-        e
-    })?;
-
-    let output = self
-        .output
-        .clone()
-        .unwrap_or_else(|| self.module.with_extension("explore.html"));
-    let output_file = std::fs::File::create(&output)
-        .with_context(|| format!("failed to create file: {}", output.display()))?;
+    let config = &c.config;
+    
+    // path
+    if wasm_path.is_null() {
+        eprintln!("Null pointer received");
+        return;   
+    }
+    
+    let c_str = unsafe { CStr::from_ptr(wasm_path) };
+    let path_str = c_str.to_str().expect("failed to to_string");
+    let input_path = Path::new(path_str);
+    let output_path = format!("{}.explore.html", path_str);
+    let output_path = Path::new(&output_path);
+    
+    let bytes = fs::read(input_path).expect("failed to read path");
+    let output_file = std::fs::File::create(&output_path).expect("failed to create output_file");
     let mut output_file = std::io::BufWriter::new(output_file);
 
-    let clif_dir = if let Some(Strategy::Cranelift) | None = self.common.codegen.compiler {
-        let clif_dir = tempdir()?;
-        config.emit_clif(clif_dir.path());
-        config.disable_cache(); // cache does not emit clif
-        Some(clif_dir)
-    } else {
-        None
-    };
-
-    wasmtime_explorer::generate(
-        &config,
-        self.common.target.as_deref(),
-        clif_dir.as_ref().map(|tmp_dir| tmp_dir.path()),
+    let result = wasmtime_explorer::generate(
+        config,
+        // self.common.target.as_deref(),
+        None,
+        None,
         &bytes,
         &mut output_file,
-    )?;
+    );
 
-    println!("Exploration written to {}", output.display());
+    match result {
+        Ok(value) => println!("Exploration written to {}", output_path.display()),
+        Err(e) => println!("failed to explore: {}", e),
+    }
 }

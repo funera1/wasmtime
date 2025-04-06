@@ -245,7 +245,7 @@ WASM_API_EXTERN wasmtime_error_t *
 wasmtime_wat2wasm(const char *wat, size_t wat_len, wasm_byte_vec_t *ret);
 
 WASM_API_EXTERN void
-wasmtime_explore(wasm_config_t c);
+wasmtime_explore(wasm_config_t *c, const char *wasm_path);
 
 #endif
 
