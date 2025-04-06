@@ -377,7 +377,7 @@ pub(crate) struct Stack {
     // innerの各値がreal/virtを判定するflagを管理. real=実スタックに現れる. virt=現れない(local.get, constなど)
     mode_stack: ModeStack,
     // TODO: 何のメタデータからわからない。(k, v) = (reg_id/mem_offset, position in stack)
-    metadata: HashMap<u8, u32>,
+    metadata: HashMap<u32, u8>,
 }
 
 impl Stack {
@@ -482,7 +482,7 @@ impl Stack {
         // real stackのpositionを埋め込む
         let stack_pos = self.get_real_stack_size();
 
-        self.metadata.insert(addr, stack_pos);
+        self.metadata.insert(stack_pos, addr);
         let _ = masm.store_metadata(stack_pos, addr as i32);
         Ok(())
     }
@@ -497,10 +497,14 @@ impl Stack {
     }
 
     pub fn get_metadata(&mut self, addr: u8) -> u32 {
-        self.metadata[&addr]
+        // self.metadata[&addr]
+        if let Some((key, _)) = self.metadata.iter().find(|(_, &v)| v == addr) {
+            return *key;
+        }
+        return u32::MAX;
     }
 
-    pub fn metadata(&mut self) -> &HashMap<u8, u32> {
+    pub fn metadata(&mut self) -> &HashMap<u32, u8> {
         &self.metadata
     }
 
@@ -509,15 +513,11 @@ impl Stack {
         M: MacroAssembler,
     {
         // 実行時のメタデータ更新
-        let _ = masm.store_metadata(self.get_metadata(old_addr), new_addr as i32);
+        let value = self.get_metadata(old_addr);
+        let _ = masm.store_metadata(value, new_addr as i32);
 
         // コンパイル時のメタデータ更新
-        self.metadata.insert(new_addr, self.metadata[&old_addr]);
-        self.metadata.remove(&old_addr);
-    }
-
-    pub fn free_metadata(&mut self, addr: u8) {
-        self.metadata.remove(&addr);
+        self.metadata.insert(value, new_addr);
     }
 
     /// Peek into the top in the stack.

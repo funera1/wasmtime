@@ -473,9 +473,12 @@ pub extern "C" fn wasmtime_config_init_logger() {
 pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, info: &wasmtime_restore_info_t) {
     let stack = unsafe {
         let wasm_stack = &info.wasm_stack;
-        assert!(!wasm_stack.values.is_null());
+        if !wasm_stack.values.is_null() {
+            vec![]            
+        } else {
+            std::slice::from_raw_parts(wasm_stack.values, wasm_stack.len).to_vec()
+        }
 
-        std::slice::from_raw_parts(wasm_stack.values, wasm_stack.len).to_vec()
     };
     c.config.set_restore_info(info.is_restore, info.wasm_pc, stack);
 }

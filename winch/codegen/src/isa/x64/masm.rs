@@ -851,30 +851,33 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u8, u32>) -> Result<()> {
-        println!("state_restore");
-
+    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()> {
         println!("{:?}", stack);
         println!("{:?}", metadata);
+
+        // metadataの復元
+        for i in 0..stack.len() {
+            let stack_pos = (i+1) as u32;
+            let id = metadata.get(&stack_pos).expect("Not found metadata");
+            let _ = self.store_metadata(stack_pos, *id as i32);
+        }
         
         // stackの復元
         for i in 0..stack.len() {
             let val = stack[i];
-            let id = metadata.get(&(i as u8)).expect("Not found metadata");
+            let stack_pos = (i+1) as u32;
+            let id = metadata.get(&stack_pos).expect("Not found metadata");
             println!("(id, val): ({}, {})", *id, val);
             if *id < 16 {
                 // idからregisterを取得
                 // TODO: gprとfprを区別できるようにする
                 // TODO: valueはu64でもつ
-                let reg= regs::gpr(*id as u8);
+                let reg= regs::gpr(*id);
                 self.asm.mov_ir(val as u64, writable!(reg), OperandSize::S32);
             } else {
                 unimplemented!("Not yet implemented for values stored in memory.");
             }
         }
-        
-        // metadataの復元
-        
 
         Ok(())
     }
