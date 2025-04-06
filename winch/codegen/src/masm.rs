@@ -1139,7 +1139,7 @@ pub(crate) trait MacroAssembler {
     fn jump_restore(&mut self, label: MachLabel, is_restore: bool) -> Result<()>;
 
     /// Generate the state restore sequence for Wasm C/R.
-    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u32>) -> Result<()>;
+    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u8, u32>) -> Result<()>;
 
     /// Emit a stack check.
     fn check_stack(&mut self, vmctx: Reg) -> Result<()>;

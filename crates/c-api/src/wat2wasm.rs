@@ -37,8 +37,8 @@ pub extern "C" fn wasmtime_explore(c: &wasm_config_t, wasm_path: *const std::os:
     let c_str = unsafe { CStr::from_ptr(wasm_path) };
     let path_str = c_str.to_str().expect("failed to to_string");
     let input_path = Path::new(path_str);
-    let output_path = format!("{}.explore.html", path_str);
-    let output_path = Path::new(&output_path);
+    let output = input_path.with_extension("explore.html");
+    let output_path = output.as_path();
     
     let bytes = fs::read(input_path).expect("failed to read path");
     let output_file = std::fs::File::create(&output_path).expect("failed to create output_file");
@@ -54,7 +54,7 @@ pub extern "C" fn wasmtime_explore(c: &wasm_config_t, wasm_path: *const std::os:
     );
 
     match result {
-        Ok(value) => println!("Exploration written to {}", output_path.display()),
+        Ok(_) => println!("Exploration written to {}", output_path.display()),
         Err(e) => println!("failed to explore: {}", e),
     }
 }

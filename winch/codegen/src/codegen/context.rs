@@ -809,7 +809,7 @@ impl<'a> CodeGenContext<'a, Emission> {
                     let slot = masm.push(r.reg, r.ty.try_into()?)?;
                     // metadataの変更をするために、addrを集める。　
                     // TODO: 16を定数にする
-                    addrs.push((r.reg.hw_enc() as u32, 16 + slot.offset.as_u32()));
+                    addrs.push((r.reg.hw_enc(), 16 + slot.offset.as_u32()));
                     regalloc.free(r.reg);
                     *v = Val::mem(r.ty, slot);
                 }
@@ -826,7 +826,7 @@ impl<'a> CodeGenContext<'a, Emission> {
         }
         for (old_addr, new_addr) in addrs {
             // メタデータの更新
-            stack.move_metadata(masm, old_addr, new_addr);
+            stack.move_metadata(masm, old_addr as u8, new_addr as u8);
         }
 
         Ok(())

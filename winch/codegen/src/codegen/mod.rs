@@ -226,7 +226,7 @@ pub(crate) struct RestoreCtx<'a> {
     pub restore_info: &'a RestoreInfo,
     pub restore_code_label: MachLabel,
     pub checkpoint_label: MachLabel,
-    pub stack_metadata: HashMap<u32, u32>,
+    pub stack_metadata: HashMap<u8, u32>,
 }
 
 impl<'a> RestoreCtx<'a> {

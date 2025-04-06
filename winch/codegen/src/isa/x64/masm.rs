@@ -851,7 +851,7 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u32>) -> Result<()> {
+    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u8, u32>) -> Result<()> {
         println!("state_restore");
 
         println!("{:?}", stack);
@@ -860,7 +860,7 @@ impl Masm for MacroAssembler {
         // stackの復元
         for i in 0..stack.len() {
             let val = stack[i];
-            let id = metadata.get(&(i as u32)).expect("Not found metadata");
+            let id = metadata.get(&(i as u8)).expect("Not found metadata");
             println!("(id, val): ({}, {})", *id, val);
             if *id < 16 {
                 // idからregisterを取得

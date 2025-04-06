@@ -376,8 +376,8 @@ pub(crate) struct Stack {
     inner: SmallVec<[Val; 64]>,
     // innerの各値がreal/virtを判定するflagを管理. real=実スタックに現れる. virt=現れない(local.get, constなど)
     mode_stack: ModeStack,
-    // TODO: 何のメタデータからわからない。(k, v) = (position in stack, reg_id/mem offset)
-    metadata: HashMap<u32, u32>,
+    // TODO: 何のメタデータからわからない。(k, v) = (reg_id/mem_offset, position in stack)
+    metadata: HashMap<u8, u32>,
 }
 
 impl Stack {
@@ -450,7 +450,7 @@ impl Stack {
     {
         if val.is_reg() {
             let reg = val.unwrap_reg();
-            let addr = reg.reg.hw_enc() as u32;
+            let addr = reg.reg.hw_enc() as u8;
             self.push_real_val(masm, val, addr).expect("failed to push reg");
         }
         else if val.is_mem() {
@@ -472,7 +472,7 @@ impl Stack {
     }
 
     // addrにはreg.hw_enc()かメモリのオフセットが入る
-    fn push_real_val<M>(&mut self, masm: &mut M, val: Val, addr: u32) -> Result<()> 
+    fn push_real_val<M>(&mut self, masm: &mut M, val: Val, addr: u8) -> Result<()> 
     where
         M: MacroAssembler,
     {
@@ -496,15 +496,15 @@ impl Stack {
         self.mode_stack.get_real_count()
     }
 
-    pub fn get_metadata(&mut self, addr: u32) -> u32 {
+    pub fn get_metadata(&mut self, addr: u8) -> u32 {
         self.metadata[&addr]
     }
 
-    pub fn metadata(&mut self) -> &HashMap<u32, u32> {
+    pub fn metadata(&mut self) -> &HashMap<u8, u32> {
         &self.metadata
     }
 
-    pub fn move_metadata<M>(&mut self, masm: &mut M, old_addr: u32, new_addr: u32) 
+    pub fn move_metadata<M>(&mut self, masm: &mut M, old_addr: u8, new_addr: u8) 
     where
         M: MacroAssembler,
     {
@@ -516,7 +516,7 @@ impl Stack {
         self.metadata.remove(&old_addr);
     }
 
-    pub fn free_metadata(&mut self, addr: u32) {
+    pub fn free_metadata(&mut self, addr: u8) {
         self.metadata.remove(&addr);
     }
 
