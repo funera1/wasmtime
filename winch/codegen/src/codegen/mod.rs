@@ -222,7 +222,7 @@ where
     }
 }
 
-struct RestoreCtx<'a> {
+pub(crate) struct RestoreCtx<'a> {
     pub restore_info: &'a RestoreInfo,
     pub restore_code_label: MachLabel,
     pub checkpoint_label: MachLabel,
@@ -274,8 +274,7 @@ where
         // TODO: restore処理
         let stack = &rctx.restore_info.stack;
         let metadata = &rctx.stack_metadata;
-        println!("{:?}", stack);
-        println!("{:?}", metadata);
+        self.masm.state_restore(&stack, &metadata)?;
         // stack pos -> reg_id/mem_offsのmapがほしい
         
         // restore位置へジャンプ

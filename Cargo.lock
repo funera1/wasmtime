@@ -4256,6 +4256,7 @@ dependencies = [
  "tracing",
  "wasmtime",
  "wasmtime-c-api-macros",
+ "wasmtime-explorer",
  "wasmtime-wasi",
  "wat",
 ]

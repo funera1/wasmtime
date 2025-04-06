@@ -469,7 +469,6 @@ pub extern "C" fn wasmtime_config_init_logger() {
     env_logger::init();
 }
 
-
 #[unsafe(no_mangle)]
 pub extern "C" fn wasmtime_config_set_restore_info(c: &mut wasm_config_t, info: &wasmtime_restore_info_t) {
     let stack = unsafe {

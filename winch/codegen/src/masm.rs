@@ -11,6 +11,7 @@ use cranelift_codegen::{
     Final, MachBufferFinalized, MachLabel,
 };
 use std::{fmt::Debug, ops::Range};
+use std::collections::HashMap;
 use wasmtime_environ::PtrSize;
 
 pub(crate) use cranelift_codegen::ir::TrapCode;
@@ -1138,7 +1139,7 @@ pub(crate) trait MacroAssembler {
     fn jump_restore(&mut self, label: MachLabel, is_restore: bool) -> Result<()>;
 
     /// Generate the state restore sequence for Wasm C/R.
-    fn state_restore(&mut self, target_label: MachLabel) -> Result<()>;
+    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u32>) -> Result<()>;
 
     /// Emit a stack check.
     fn check_stack(&mut self, vmctx: Reg) -> Result<()>;

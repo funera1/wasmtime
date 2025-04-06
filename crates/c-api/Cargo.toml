@@ -37,6 +37,7 @@ wasmtime-wasi = { workspace = true, optional = true, features = ["preview1"] }
 
 # Optional dependencies for the `async` feature
 futures = { workspace = true, optional = true }
+wasmtime-explorer.workspace = true
 
 [features]
 # WASMTIME_FEATURE_LIST

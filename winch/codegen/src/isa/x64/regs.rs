@@ -20,7 +20,7 @@ const ENC_R13: u8 = 13;
 const ENC_R14: u8 = 14;
 const ENC_R15: u8 = 15;
 
-fn gpr(enc: u8) -> Reg {
+pub fn gpr(enc: u8) -> Reg {
     Reg::new(PReg::new(enc as usize, RegClass::Int))
 }
 

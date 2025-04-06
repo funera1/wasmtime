@@ -45,6 +45,7 @@ use cranelift_codegen::{
 };
 use wasmtime_cranelift::TRAP_UNREACHABLE;
 use wasmtime_environ::{PtrSize, WasmValType};
+use std::collections::HashMap;
 
 // Taken from `cranelift/codegen/src/isa/x64/lower/isle.rs`
 // Since x64 doesn't have 8x16 shifts and we must use a 16x8 shift instead, we
@@ -850,11 +851,30 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn state_restore(&mut self, target: MachLabel) -> Result<()> {
+    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u32>) -> Result<()> {
         println!("state_restore");
+
+        println!("{:?}", stack);
+        println!("{:?}", metadata);
         
-        // restore処理
-        // self.jmp(target);
+        // stackの復元
+        for i in 0..stack.len() {
+            let val = stack[i];
+            let id = metadata.get(&(i as u32)).expect("Not found metadata");
+            println!("(id, val): ({}, {})", *id, val);
+            if *id < 16 {
+                // idからregisterを取得
+                // TODO: gprとfprを区別できるようにする
+                // TODO: valueはu64でもつ
+                let reg= regs::gpr(*id as u8);
+                self.asm.mov_ir(val as u64, writable!(reg), OperandSize::S32);
+            } else {
+                unimplemented!("Not yet implemented for values stored in memory.");
+            }
+        }
+        
+        // metadataの復元
+        
 
         Ok(())
     }
