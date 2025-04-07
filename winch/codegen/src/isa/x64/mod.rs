@@ -171,24 +171,6 @@ impl TargetIsa for X64 {
         let names = body_codegen.env.take_name_map();
         let stack_size_map = body_codegen.stack_size_map;
 
-        // let mut i = 0;
-        // let mut cur = 0;
-        // let mut local_info: Vec<(WasmValType, u32)> = vec![];
-        // while cur < frame.locals_size {
-        //     let local = frame.get_wasm_local(i);
-        //     match &local.ty {
-        //         WasmValType::I32 | WasmValType::F32 => cur += 32,
-        //         WasmValType::I64 | WasmValType::F64 => cur += 64,
-        //         _ => {println!("not support val type"); break;},
-        //     }
-        //     local_info.push((local.ty, local.offset));
-        //     i += 1;
-        // }
-        // let local_info: Vec<(WasmValType, u32)> = (0..frame.locals_size)
-        //     .filter_map(|i| Some(frame.get_wasm_local(i)))
-        //     .map(|slot| (slot.ty, slot.offset))
-        //     .collect();
-
         Ok(CompiledFunction::new(
             masm.finalize(base)?,
             names,
