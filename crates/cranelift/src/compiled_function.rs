@@ -3,7 +3,7 @@ use cranelift_codegen::{
     ir, isa::unwind::CfaUnwindInfo, isa::unwind::UnwindInfo, Final, MachBufferFinalized,
     MachSrcLoc, ValueLabelsRanges,
 };
-use wasmtime_environ::{FilePos, InstructionAddressMap, PrimaryMap, TrapInformation};
+use wasmtime_environ::{FilePos, InstructionAddressMap, PrimaryMap, TrapInformation, WasmValType};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 /// Metadata to translate from binary offsets back to the original
@@ -52,6 +52,8 @@ pub struct CompiledFunctionMetadata {
     pub end_srcloc: FilePos,
     /// Mapping of wasm offset and stack size. (wasm offset, stack size)
     pub stack_size_map: Vec<(u32, u32)>,
+    /// Local values information (type, offset)
+    pub local_info: Vec<(WasmValType, u32)>,
 }
 
 /// Compiled function: machine code body, jump table offsets, and unwind information.
@@ -77,9 +79,11 @@ impl CompiledFunction {
         name_map: PrimaryMap<ir::UserExternalNameRef, ir::UserExternalName>,
         alignment: u32,
         stack_size_map: Vec<(u32, u32)>,
+        local_info: Vec<(WasmValType, u32)>,
     ) -> Self {
         let mut metadata = CompiledFunctionMetadata::default();
         metadata.stack_size_map = stack_size_map;
+        metadata.local_info = local_info;
         Self {
             buffer,
             name_map,

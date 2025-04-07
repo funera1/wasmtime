@@ -36,6 +36,10 @@ struct wasmtime_ssmap_entry {
     uint32_t wasm_offset;
     uint32_t stack_size;
 };
+typedef struct local_info {
+    uint8_t ty;
+    uint32_t offset;
+} wasmtime_local_info_t;
 
 #ifdef WASMTIME_FEATURE_COMPILER
 
@@ -82,6 +86,12 @@ WASM_API_EXTERN void wasmtime_module_address_map(wasmtime_module_t *m, wasmtime_
  * internal reference count.
  */
 WASM_API_EXTERN void wasmtime_module_stack_size_maps(wasmtime_module_t *m, wasmtime_ssmap_entry_t **ptr, size_t *len);
+
+/**
+ * \brief Creates a shallow clone of the specified module, increasing the
+ * internal reference count.
+ */
+WASM_API_EXTERN void wasmtime_module_local_info(wasmtime_module_t *m, size_t index, wasmtime_local_info_t **ptr, size_t *len);
 
 /**
  * \brief Same as #wasm_module_imports, but for #wasmtime_module_t.

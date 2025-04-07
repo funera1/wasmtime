@@ -1012,6 +1012,7 @@ impl FunctionCompiler<'_> {
             alignment,
             // TODO: implementation
             Vec::new(),
+            Vec::new(),
         );
 
         if let Some((body, tunables)) = body_and_tunables {
@@ -1068,6 +1069,7 @@ impl FunctionCompiler<'_> {
                 stack_maps: stack_maps.into(),
                 // TODO: implementation
                 stack_size_map: Vec::new(),
+                local_info: Vec::new(),
             },
             compiled_function,
         ))

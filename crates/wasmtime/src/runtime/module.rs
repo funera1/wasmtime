@@ -20,7 +20,7 @@ use std::{fs::File, path::Path};
 use wasmparser::{Parser, ValidPayload, Validator};
 use wasmtime_environ::{
     CompiledModuleInfo, EntityIndex, HostPtr, ModuleTypes, ObjectKind, TypeTrace, VMOffsets,
-    VMSharedTypeIndex,
+    VMSharedTypeIndex, WasmValType,
 };
 mod registry;
 
@@ -1022,6 +1022,25 @@ impl Module {
     /// Get the stack size maps
     pub fn stack_size_maps(&self) -> impl Iterator<Item = &[(u32, u32)]> {
         self.inner.module.stack_size_maps()
+    }
+
+    /// Get local infos (wasm val type, offset)
+    pub fn local_info(&self, i: usize) -> Vec<(u8, u32)> {
+        let to_u8 = |ty: WasmValType| match ty {
+            WasmValType::I32 => 0x7F,
+            WasmValType::I64 => 0x7E,
+            WasmValType::F32 => 0x7D,
+            WasmValType::F64 => 0x7C,
+            _ => 0x00,
+        };
+
+        self.inner.module.local_info()
+            .into_iter()
+            .nth(i)
+            .expect("failed to get local info")
+            .into_iter()
+            .map(|(ty, offset)| (to_u8(*ty), *offset)) // ty の変換方法に応じて変更
+            .collect()
     }
 
     /// Get this module's code object's `.text` section, containing its compiled

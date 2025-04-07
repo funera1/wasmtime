@@ -263,6 +263,11 @@ impl Frame<Emission> {
             .unwrap_or_else(|| panic!(" Expected WebAssembly local at slot: {index}"))
     }
 
+    /// get wasm locals
+    pub fn get_wasm_locals(&self) -> &WasmLocals {
+        &self.wasm_locals
+    }
+
     /// Get the [`LocalSlot`] for a special local.
     ///
     /// # Panics

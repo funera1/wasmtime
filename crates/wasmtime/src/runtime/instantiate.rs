@@ -11,7 +11,7 @@ use core::str;
 use wasmtime_environ::{
     CompiledFunctionInfo, CompiledModuleInfo, DefinedFuncIndex, FuncIndex, FunctionLoc,
     FunctionName, Metadata, Module, ModuleInternedTypeIndex, PrimaryMap, StackMapInformation,
-    WasmFunctionInfo,
+    WasmFunctionInfo, WasmValType,
 };
 
 /// A compiled wasm module, ready to be instantiated.
@@ -192,6 +192,13 @@ impl CompiledModule {
         self.funcs
             .values()
             .map(|f| &f.wasm_func_info.stack_size_map[..])
+    }
+
+    /// Returns the stask size map information
+    pub fn local_info(&self) -> impl Iterator<Item = &[(WasmValType, u32)]> {
+        self.funcs
+            .values()
+            .map(|f| &f.wasm_func_info.local_info[..])
     }
 
     /// Lookups a defined function by a program counter value.

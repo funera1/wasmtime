@@ -1,6 +1,7 @@
 use crate::{
     abi::{wasm_sig, ABI},
     codegen::{BuiltinFunctions, CodeGen, CodeGenContext, FuncEnv, TypeConverter},
+    x64::address::Address,
 };
 
 use crate::frame::{DefinedLocals, Frame};
@@ -19,7 +20,7 @@ use cranelift_codegen::{MachTextSectionBuilder, TextSectionBuilder};
 use target_lexicon::Triple;
 use wasmparser::{FuncValidator, FunctionBody, ValidatorResources};
 use wasmtime_cranelift::CompiledFunction;
-use wasmtime_environ::{ModuleTranslation, ModuleTypesBuilder, RestoreInfo, Tunables, VMOffsets, WasmFuncType};
+use wasmtime_environ::{ModuleTranslation, ModuleTypesBuilder, RestoreInfo, Tunables, VMOffsets, WasmFuncType, WasmValType};
 
 use self::regs::{ALL_FPR, ALL_GPR, MAX_FPR, MAX_GPR, NON_ALLOCATABLE_FPR, NON_ALLOCATABLE_GPR};
 
@@ -138,6 +139,22 @@ impl TargetIsa for X64 {
         let codegen = CodeGen::new(tunables, &mut masm, codegen_context, env, abi_sig);
 
         let mut body_codegen = codegen.emit_prologue()?;
+
+        // checkpoint
+        let local_info = {
+            let frame = &body_codegen.context.frame;
+            let locals = frame.get_wasm_locals();
+            locals.iter().enumerate()
+                .map(|(index, _)| {
+                    let (ty, address)= frame.get_local_address(index as u32, body_codegen.masm).expect("failed to get local address");
+                    let local_offset = match address {
+                        Address::Offset { base, offset } => offset,
+                        _ => panic!("failed to get local offset"), // 他のアドレスタイプに対するエラー処理
+                    };
+                    (ty, local_offset)
+                })
+                .collect()
+        };
         
         // TODO: RestoreInfoの扱いをうまく実装する. 
         match restore_info {
@@ -153,11 +170,31 @@ impl TargetIsa for X64 {
         let base = body_codegen.source_location.base;
         let names = body_codegen.env.take_name_map();
         let stack_size_map = body_codegen.stack_size_map;
+
+        // let mut i = 0;
+        // let mut cur = 0;
+        // let mut local_info: Vec<(WasmValType, u32)> = vec![];
+        // while cur < frame.locals_size {
+        //     let local = frame.get_wasm_local(i);
+        //     match &local.ty {
+        //         WasmValType::I32 | WasmValType::F32 => cur += 32,
+        //         WasmValType::I64 | WasmValType::F64 => cur += 64,
+        //         _ => {println!("not support val type"); break;},
+        //     }
+        //     local_info.push((local.ty, local.offset));
+        //     i += 1;
+        // }
+        // let local_info: Vec<(WasmValType, u32)> = (0..frame.locals_size)
+        //     .filter_map(|i| Some(frame.get_wasm_local(i)))
+        //     .map(|slot| (slot.ty, slot.offset))
+        //     .collect();
+
         Ok(CompiledFunction::new(
             masm.finalize(base)?,
             names,
             self.function_alignment(),
             stack_size_map,
+            local_info,
         ))
     }
 

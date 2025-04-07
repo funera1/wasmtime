@@ -3,7 +3,7 @@
 
 use crate::prelude::*;
 use crate::{
-    DefinedFuncIndex, FilePos, FuncIndex, Module, ModuleInternedTypeIndex, PrimaryMap, StackMap,
+    DefinedFuncIndex, FilePos, FuncIndex, Module, ModuleInternedTypeIndex, PrimaryMap, StackMap, WasmValType,
 };
 use core::fmt;
 use core::ops::Range;
@@ -31,6 +31,8 @@ pub struct WasmFunctionInfo {
     pub stack_maps: Box<[StackMapInformation]>,
     /// [wasm offset, stack size] for checkpointing
     pub stack_size_map: Vec<(u32, u32)>,
+    /// [wasm offset, stack size] for checkpointing
+    pub local_info: Vec<(WasmValType, u32)>,
 }
 
 /// Description of where a function is located in the text section of a

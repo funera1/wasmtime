@@ -146,6 +146,13 @@ pub struct wasmtime_stacksizemap_entry_t {
 }
 wasmtime_c_api_macros::declare_own!(wasmtime_stacksizemap_entry_t);
 
+#[repr(C)]
+pub struct wasmtime_local_info_t {
+    ty: u8,
+    offset: u32,
+}
+wasmtime_c_api_macros::declare_own!(wasmtime_local_info_t);
+
 #[unsafe(no_mangle)]
 #[cfg(any(feature = "cranelift", feature = "winch"))]
 pub unsafe extern "C" fn wasmtime_module_new(
@@ -300,4 +307,30 @@ pub unsafe extern "C" fn wasmtime_module_deserialize_file(
     handle_result(result, |module| {
         *out = Box::into_raw(Box::new(wasmtime_module_t { module }));
     })
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn wasmtime_module_local_info(
+    module: &wasmtime_module_t,
+    index: usize,
+    ptr: *mut *const wasmtime_local_info_t, 
+    lengths: *mut usize
+) {
+    let data = module.module.local_info(index);
+    
+    let local_info: Vec<wasmtime_local_info_t> = data.into_iter()
+        .map(|(ty, offset)| wasmtime_local_info_t {
+            ty: ty,
+            offset: offset,
+        })
+        .collect();
+    
+    let raw_ptr = local_info.as_ptr();
+    let len = local_info.len();
+    std::mem::forget(local_info);
+
+    unsafe {
+        *ptr = raw_ptr;
+        *lengths = len;
+    }
 }
