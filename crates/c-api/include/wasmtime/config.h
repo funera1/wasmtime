@@ -538,10 +538,17 @@ typedef struct wasmtime_stack_t {
   uint32_t* metadata;
 } wasmtime_stack;
 
+typedef struct wasmtime_locals_t {
+  size_t len;
+  uint8_t* types;
+  uint32_t* values;
+} wasmtime_locals;
+
 typedef struct wasmtime_restore_info_t {
   bool is_restore;  
   uint32_t wasm_pc;
   wasmtime_stack_t wasm_stack;
+  wasmtime_locals_t wasm_locals;
 } wasmtime_restore_info;
 /**
  * \brief Set restore info

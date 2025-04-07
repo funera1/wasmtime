@@ -1,5 +1,6 @@
 use crate::abi::{self, align_to, scratch, LocalSlot};
 use crate::codegen::{CodeGenContext, Emission, FuncEnv};
+use crate::frame::WasmLocals;
 use crate::isa::{
     reg::{writable, Reg, WritableReg},
     CallingConvention,
@@ -1137,9 +1138,18 @@ pub(crate) trait MacroAssembler {
 
     /// Generate the state restore sequence for Wasm C/R.
     fn jump_restore(&mut self, label: MachLabel, is_restore: bool) -> Result<()>;
+    
+    fn restore_locals(&mut self, locals: &Vec<u32>, local_info: &WasmLocals) -> Result<()>;
+
+    fn restore_stack(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()>;
 
     /// Generate the state restore sequence for Wasm C/R.
-    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()>;
+    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()> {
+        self.restore_locals(locals, local_info)?;
+        self.restore_stack(stack, metadata)?;
+
+        Ok(())
+    }
 
     /// Emit a stack check.
     fn check_stack(&mut self, vmctx: Reg) -> Result<()>;

@@ -274,6 +274,8 @@ where
         // TODO: restore処理
         let stack = &rctx.restore_info.stack;
         let metadata = &rctx.stack_metadata;
+        let locals = &rctx.restore_info.locals;
+        println!("locals: {:?}", locals);
         self.masm.state_restore(&stack, &metadata)?;
         // stack pos -> reg_id/mem_offsのmapがほしい
         

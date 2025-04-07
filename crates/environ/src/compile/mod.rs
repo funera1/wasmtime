@@ -401,15 +401,18 @@ pub struct RestoreInfo {
     pub wasm_pc: u32,
     /// stack
     pub stack: Vec<u32>,
+    /// stack
+    pub locals: Vec<u32>,
 }
 
 impl RestoreInfo {
     /// constructor
-    pub fn new(is_restore: bool, wasm_pc: u32, stack: Vec<u32>) -> Self {
+    pub fn new(is_restore: bool, wasm_pc: u32, stack: Vec<u32>, locals: Vec<u32>) -> Self {
         Self {
             is_restore,
             wasm_pc,
             stack,
+            locals,
         }
     }
 }

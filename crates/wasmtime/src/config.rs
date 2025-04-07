@@ -2574,8 +2574,8 @@ impl Config {
     }
     
     /// set restore info
-    pub fn set_restore_info(&mut self, is_restore: bool, wasm_pc: u32, stack: Vec<u32>) -> &mut Self {
-        let info = RestoreInfo::new(is_restore, wasm_pc, stack);
+    pub fn set_restore_info(&mut self, is_restore: bool, wasm_pc: u32, stack: Vec<u32>, locals: Vec<u32>) -> &mut Self {
+        let info = RestoreInfo::new(is_restore, wasm_pc, stack, locals);
         self.restore_info = Some(info);
         self
     }

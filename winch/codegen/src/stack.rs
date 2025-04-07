@@ -498,7 +498,7 @@ impl Stack {
 
     pub fn get_metadata(&mut self, addr: u8) -> u32 {
         // self.metadata[&addr]
-        if let Some((key, _)) = self.metadata.iter().find(|(_, &v)| v == addr) {
+        if let Some((key, _)) = self.metadata.iter().find(|&(_, &v)| v == addr) {
             return *key;
         }
         return u32::MAX;

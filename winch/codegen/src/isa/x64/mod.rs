@@ -20,7 +20,7 @@ use cranelift_codegen::{MachTextSectionBuilder, TextSectionBuilder};
 use target_lexicon::Triple;
 use wasmparser::{FuncValidator, FunctionBody, ValidatorResources};
 use wasmtime_cranelift::CompiledFunction;
-use wasmtime_environ::{ModuleTranslation, ModuleTypesBuilder, RestoreInfo, Tunables, VMOffsets, WasmFuncType, WasmValType};
+use wasmtime_environ::{ModuleTranslation, ModuleTypesBuilder, RestoreInfo, Tunables, VMOffsets, WasmFuncType};
 
 use self::regs::{ALL_FPR, ALL_GPR, MAX_FPR, MAX_GPR, NON_ALLOCATABLE_FPR, NON_ALLOCATABLE_GPR};
 

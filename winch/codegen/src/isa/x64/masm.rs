@@ -4,6 +4,7 @@ use super::{
     asm::{Assembler, PatchableAddToReg, VcmpKind, VcvtKind, VroundMode},
     regs::{self, rbp, rsp},
 };
+use crate::frame::WasmLocals;
 use anyhow::{anyhow, bail, Result};
 use log::info;
 
@@ -851,7 +852,13 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()> {
+    fn restore_locals(&mut self, locals: &Vec<u32>, local_info: &WasmLocals) -> Result<()> {
+        
+        
+        Ok(())
+    }
+    
+    fn restore_stack(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()> {
         println!("{:?}", stack);
         println!("{:?}", metadata);
 
