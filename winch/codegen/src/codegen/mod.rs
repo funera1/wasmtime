@@ -1,12 +1,8 @@
 use crate::{
-    abi::{scratch, vmctx, ABIOperand, ABISig, RetArea},
-    codegen::BlockSig,
-    isa::reg::{writable, Reg},
-    masm::{
+    abi::{scratch, vmctx, ABIOperand, ABISig, RetArea}, codegen::BlockSig, isa::reg::{writable, Reg}, masm::{
         Extend, Imm, IntCmpKind, LaneSelector, LoadKind, MacroAssembler, OperandSize, RegImm,
         RmwOp, SPOffset, ShiftKind, StoreKind, TrapCode, Zero, UNTRUSTED_FLAGS,
-    },
-    stack::TypedReg,
+    }, stack::TypedReg
 };
 use anyhow::{anyhow, bail, ensure, Result};
 use cranelift_codegen::{
@@ -227,15 +223,21 @@ pub(crate) struct RestoreCtx<'a> {
     pub restore_code_label: MachLabel,
     pub checkpoint_label: MachLabel,
     pub stack_metadata: HashMap<u32, u8>,
+    pub local_info: &'a Vec<(WasmValType, (Reg, u32))>,
 }
 
 impl<'a> RestoreCtx<'a> {
-    pub fn new(info: &'a RestoreInfo, rc_label: MachLabel, cp_label: MachLabel) -> Self {
+    pub fn new(
+        info: &'a RestoreInfo, 
+        rc_label: MachLabel, 
+        cp_label: MachLabel, 
+        local_info: &'a Vec<(WasmValType, (Reg, u32))>) -> Self {
         Self {
             restore_info: info,
             restore_code_label: rc_label,
             checkpoint_label: cp_label,
             stack_metadata: Default::default(),
+            local_info: local_info,
         }
     }
 }
@@ -249,14 +251,11 @@ where
         &mut self,
         body: &mut BinaryReader<'a>,
         validator: &mut FuncValidator<ValidatorResources>,
-        restore_info: &RestoreInfo,
+        restore_ctx: &mut RestoreCtx,
     ) -> Result<()> {
-        // restoreのために必要な情報を持つrestre_contextを作成
-        let mut rctx = RestoreCtx::new(restore_info, self.masm.get_label()?, self.masm.get_label()?);
-
-        self.emit_body(body, validator, &mut rctx)
+        self.emit_body(body, validator, restore_ctx)
             .and_then(|_| self.emit_end())
-            .and_then(|_| self.emit_restore_code(&rctx))?;
+            .and_then(|_| self.emit_restore_code(restore_ctx))?;
 
         Ok(())
     }
@@ -271,13 +270,8 @@ where
         // restore codeの位置をbind
         self.masm.bind(rctx.restore_code_label)?;
         
-        // TODO: restore処理
-        let stack = &rctx.restore_info.stack;
-        let metadata = &rctx.stack_metadata;
-        let locals = &rctx.restore_info.locals;
-        println!("locals: {:?}", locals);
-        self.masm.state_restore(&stack, &metadata)?;
-        // stack pos -> reg_id/mem_offsのmapがほしい
+        // restore処理
+        self.masm.state_restore(rctx)?;
         
         // restore位置へジャンプ
         self.masm.jmp(rctx.checkpoint_label)?;

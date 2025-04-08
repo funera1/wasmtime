@@ -1,6 +1,6 @@
 use crate::{
     abi::{wasm_sig, ABI},
-    codegen::{BuiltinFunctions, CodeGen, CodeGenContext, FuncEnv, TypeConverter},
+    codegen::{BuiltinFunctions, CodeGen, CodeGenContext, FuncEnv, RestoreCtx, TypeConverter},
     x64::address::Address,
 };
 
@@ -147,23 +147,35 @@ impl TargetIsa for X64 {
             locals.iter().enumerate()
                 .map(|(index, _)| {
                     let (ty, address)= frame.get_local_address(index as u32, body_codegen.masm).expect("failed to get local address");
-                    let local_offset = match address {
-                        Address::Offset { base, offset } => offset,
+                    let (base, offset) = match address {
+                        Address::Offset { base, offset } => (base, offset),
                         _ => panic!("failed to get local offset"), // 他のアドレスタイプに対するエラー処理
                     };
-                    (ty, local_offset)
+                    (ty, (base, offset))
                 })
                 .collect()
         };
         
-        // TODO: RestoreInfoの扱いをうまく実装する. 
+        // TODO: 場合分けをしないですむ実装にする. 
         match restore_info {
             Some(info) => {
-                body_codegen.emit(&mut body, validator, info)?;
+                let mut rctx = RestoreCtx::new(
+                    info,
+                    body_codegen.masm.get_label()?, 
+                    body_codegen.masm.get_label()?,
+                    &local_info,
+                );
+                body_codegen.emit(&mut body, validator, &mut rctx)?;
             }
             None => {
                 let def = RestoreInfo::default();
-                body_codegen.emit(&mut body, validator, &def)?;
+                let mut rctx = RestoreCtx::new(
+                    &def,
+                    body_codegen.masm.get_label()?, 
+                    body_codegen.masm.get_label()?,
+                    &local_info,
+                );
+                body_codegen.emit(&mut body, validator, &mut rctx)?;
             }
         }
         
@@ -171,12 +183,18 @@ impl TargetIsa for X64 {
         let names = body_codegen.env.take_name_map();
         let stack_size_map = body_codegen.stack_size_map;
 
+        let local_info_ret = {
+            local_info.iter()
+                .map(|(ty, (_, offset))| (*ty, *offset))
+                .collect()
+        };
+
         Ok(CompiledFunction::new(
             masm.finalize(base)?,
             names,
             self.function_alignment(),
             stack_size_map,
-            local_info,
+            local_info_ret,
         ))
     }
 

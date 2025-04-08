@@ -4,7 +4,6 @@ use super::{
     asm::{Assembler, PatchableAddToReg, VcmpKind, VcvtKind, VroundMode},
     regs::{self, rbp, rsp},
 };
-use crate::frame::WasmLocals;
 use anyhow::{anyhow, bail, Result};
 use log::info;
 
@@ -852,8 +851,25 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
-    fn restore_locals(&mut self, locals: &Vec<u32>, local_info: &WasmLocals) -> Result<()> {
-        
+    fn restore_locals(&mut self, locals: &Vec<u32>, local_info: &Vec<(WasmValType, (Reg, u32))>) -> Result<()> {
+        for i in 0..locals.len() {
+            // let address = &self.local_address(&local_info[i]).expect("failed to get local address");
+            let (ty, (base, offset)) = local_info[i];
+            let address = &Address::offset(base, offset);
+            match ty {
+                WasmValType::I32 => self.asm.mov_im(
+                    locals[i] as i32,
+                    address,
+                    OperandSize::S32, 
+                    TRUSTED_FLAGS),
+                WasmValType::F32 => self.asm.mov_im(
+                    locals[i] as i32,
+                    address,
+                    OperandSize::S32, 
+                    TRUSTED_FLAGS),
+                _ => unimplemented!("Not support val types"),
+            }
+        }
         
         Ok(())
     }

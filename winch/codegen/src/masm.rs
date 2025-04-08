@@ -1,6 +1,5 @@
 use crate::abi::{self, align_to, scratch, LocalSlot};
-use crate::codegen::{CodeGenContext, Emission, FuncEnv};
-use crate::frame::WasmLocals;
+use crate::codegen::{CodeGenContext, Emission, FuncEnv, RestoreCtx};
 use crate::isa::{
     reg::{writable, Reg, WritableReg},
     CallingConvention,
@@ -13,7 +12,7 @@ use cranelift_codegen::{
 };
 use std::{fmt::Debug, ops::Range};
 use std::collections::HashMap;
-use wasmtime_environ::PtrSize;
+use wasmtime_environ::{PtrSize, WasmValType};
 
 pub(crate) use cranelift_codegen::ir::TrapCode;
 
@@ -1139,13 +1138,20 @@ pub(crate) trait MacroAssembler {
     /// Generate the state restore sequence for Wasm C/R.
     fn jump_restore(&mut self, label: MachLabel, is_restore: bool) -> Result<()>;
     
-    fn restore_locals(&mut self, locals: &Vec<u32>, local_info: &WasmLocals) -> Result<()>;
+    fn restore_locals(&mut self, locals: &Vec<u32>, local_info: &Vec<(WasmValType, (Reg, u32))>) -> Result<()>;
 
     fn restore_stack(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()>;
 
     /// Generate the state restore sequence for Wasm C/R.
-    fn state_restore(&mut self, stack: &Vec<u32>, metadata: &HashMap<u32, u8>) -> Result<()> {
+    fn state_restore(&mut self, rctx: &RestoreCtx) -> Result<()> {
+        // restore locals
+        let locals = &rctx.restore_info.locals;
+        let local_info = rctx.local_info;
         self.restore_locals(locals, local_info)?;
+        
+        // restore stack
+        let stack = &rctx.restore_info.stack;
+        let metadata = &rctx.stack_metadata;
         self.restore_stack(stack, metadata)?;
 
         Ok(())
