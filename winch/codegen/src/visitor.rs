@@ -2128,7 +2128,7 @@ where
         let addr = self.masm.address_at_reg(base, offset)?;
         let dst = self.context.reg_for_type(ty, self.masm)?;
         self.masm.load(addr, writable!(dst), ty.try_into()?)?;
-        self.context.stack.push(Val::reg(dst, ty));
+        self.context.stack.push_with_tag(self.masm, Val::reg(dst, ty));
 
         self.context.free_reg(base);
 

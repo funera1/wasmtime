@@ -110,6 +110,17 @@ WASM_API_EXTERN bool wasmtime_instance_export_nth(
     size_t index, char **name, size_t *name_len, wasmtime_extern_t *item);
 
 /**
+ * \brief Get the number of exports from an instance.
+ *
+ * \param store the store that owns `instance`
+ * \param instance the instance to lookup within
+ *
+ * Returns the number of exports in the instance.
+ */
+WASM_API_EXTERN size_t wasmtime_instance_export_size(
+    wasmtime_context_t *store, const wasmtime_instance_t *instance);
+
+/**
  * \brief A #wasmtime_instance_t, pre-instantiation, that is ready to be
  * instantiated.
  *

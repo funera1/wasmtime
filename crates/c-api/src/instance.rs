@@ -151,6 +151,14 @@ pub unsafe extern "C" fn wasmtime_instance_export_nth(
     }
 }
 
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn wasmtime_instance_export_size(
+    store: WasmtimeStoreContextMut<'_>,
+    instance: &Instance,
+) -> usize {
+    instance.exports(store).count()
+}
+
 #[repr(transparent)]
 pub struct wasmtime_instance_pre_t {
     pub(crate) underlying: InstancePre<WasmtimeStoreData>,
