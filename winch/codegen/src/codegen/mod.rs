@@ -390,9 +390,6 @@ where
                 rctx.stack_metadata = self.context.stack.metadata().clone();
             }
             
-            // checkpointのため1Wasm命令ごとにnopを埋める
-            self.masm.emit_nop();
-
             body.visit_operator(&mut ValidateThenVisit(
                 validator.simd_visitor(offset),
                 self,
@@ -463,6 +460,9 @@ where
             fn before_visit_op(&mut self, operator: &Operator, offset: usize) -> Result<()> {
                 // Handle source location mapping.
                 self.source_location_before_visit_op(offset)?;
+                
+                // Emit checkpoint label for the current operator.
+                self.checkpoint_label(operator)?;
 
                 // Handle fuel.
                 if self.tunables.consume_fuel {
@@ -1436,6 +1436,22 @@ where
             | Operator::ReturnCallIndirect { .. } => self.emit_fuel_increment(),
             _ => Ok(()),
         }
+    }
+        
+    /// Hook to handle checkpointing before visiting an operator.
+    fn checkpoint_label(&mut self, op: &Operator) -> Result<()> {
+        use Operator::*;
+        match op {
+            LocalGet { .. } | I32Const { .. } | I64Const { .. } | F32Const { .. } | F64Const { .. } 
+            | Block { .. } | Loop { .. }
+            | Nop => {
+               // do nothing 
+            },
+            _ => {
+                self.masm.nop()?;
+            }
+        }
+        Ok(())
     }
 
     // Hook to handle source location mapping before visiting an operator.
