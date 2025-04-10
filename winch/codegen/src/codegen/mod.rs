@@ -389,6 +389,9 @@ where
                 self.masm.bind(rctx.checkpoint_label)?;
                 rctx.stack_metadata = self.context.stack.metadata().clone();
             }
+            
+            // checkpointのため1Wasm命令ごとにnopを埋める
+            self.masm.emit_nop();
 
             body.visit_operator(&mut ValidateThenVisit(
                 validator.simd_visitor(offset),

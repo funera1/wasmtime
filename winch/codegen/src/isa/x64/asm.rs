@@ -1689,6 +1689,10 @@ impl Assembler {
         self.emit(Inst::Hlt)
     }
 
+    pub fn nop(&mut self) {
+        self.emit(Inst::Nop{ len: 1 })
+    }
+
     /// Conditional trap.
     pub fn trapif(&mut self, cc: impl Into<CC>, trap_code: TrapCode) {
         self.emit(Inst::TrapIf {

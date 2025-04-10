@@ -1303,6 +1303,11 @@ impl Masm for MacroAssembler {
         Ok(())
     }
 
+    fn nop(&mut self) -> Result<()> {
+        self.asm.nop();
+        Ok(())
+    }
+
     fn trapif(&mut self, cc: IntCmpKind, code: TrapCode) -> Result<()> {
         self.asm.trapif(cc, code);
         Ok(())

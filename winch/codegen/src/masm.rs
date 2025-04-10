@@ -1670,6 +1670,9 @@ pub(crate) trait MacroAssembler {
 
     /// Emit an int3.
     fn hlt(&mut self) -> Result<()>;
+    
+    /// Emit a nop
+    fn nop(&mut self) -> Result<()>;
 
     /// Traps if the condition code is met.
     fn trapif(&mut self, cc: IntCmpKind, code: TrapCode) -> Result<()>;
